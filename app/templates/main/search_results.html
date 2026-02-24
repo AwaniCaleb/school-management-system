@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Search Results - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Search Results for "{{ query }}"</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        {% if results %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in results %}
+                    <tr>
+                        <td>{{ s.roll_no }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.student_class.class_name }} - {{ s.student_class.section }}</td>
+                        <td>
+                            <a href="{{ url_for('exams.student_result', student_id=s.id) }}" class="btn btn-sm btn-outline-info">Result</a>
+                            <a href="{{ url_for('classes.class_detail', class_id=s.class_id) }}" class="btn btn-sm btn-outline-secondary">Go to Class</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-gray-300 mb-3"></i>
+            <p class="text-muted">No students found matching your search.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

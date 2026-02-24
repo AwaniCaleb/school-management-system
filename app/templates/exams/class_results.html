@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Class Results - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Class Results: {{ cls.class_name }} {{ cls.section }}</h1>
+    <div>
+        <a href="{{ url_for('classes.class_detail', class_id=cls.id) }}" class="btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-light d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Exam: {{ exam.name }} ({{ exam.exam_type }})</h6>
+        <form class="d-flex align-items-center" method="GET">
+            <label class="me-2 small fw-bold">Switch Exam:</label>
+            <select name="exam_id" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                {% for e in cls.exams %}
+                <option value="{{ e.id }}" {{ 'selected' if e.id == exam.id }}>{{ e.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    <div class="card-body">
+        {% if subject_count == 0 %}
+            <div class="alert alert-warning">No subjects defined for this class. Cannot calculate results.</div>
+        {% elif not student_results %}
+            <div class="text-center py-4 text-muted">No students found in this class.</div>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Student Name</th>
+                            <th class="text-end">Total ({{ subject_count * 100 }})</th>
+                            <th class="text-end">Percentage</th>
+                            <th class="text-center">Grade</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in student_results %}
+                        {% set percentage = (r.total / (subject_count * 100) * 100) if subject_count > 0 else 0 %}
+                        <tr>
+                            <td>{{ r.student.roll_no }}</td>
+                            <td>{{ r.student.name }}</td>
+                            <td class="text-end fw-bold">{{ r.total }}</td>
+                            <td class="text-end">{{ "%.2f"|format(percentage) }}%</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary">
+                                    {% if percentage >= 90 %}A+
+                                    {% elif percentage >= 80 %}A
+                                    {% elif percentage >= 60 %}B
+                                    {% elif percentage >= 33 %}C
+                                    {% else %}F{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge {{ 'bg-success' if percentage >= 33 else 'bg-danger' }}">
+                                    {{ 'PASS' if percentage >= 33 else 'FAIL' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{{ url_for('exams.student_result', student_id=r.student.id, exam_id=exam.id) }}" class="btn btn-sm btn-info text-white">View Card</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

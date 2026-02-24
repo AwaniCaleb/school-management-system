@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Fees Dashboard - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Fees Management</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Fee Status by Class</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Class</th>
+                        <th class="text-center">Students</th>
+                        <th class="text-center">Fee Items</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in classes %}
+                    <tr>
+                        <td>{{ c.class_name }} - {{ c.section }}</td>
+                        <td class="text-center">{{ c.students|length }}</td>
+                        <td class="text-center">{{ c.fee_structures|length }}</td>
+                        <td>
+                            <a href="{{ url_for('fees.class_fees', class_id=c.id) }}" class="btn btn-sm btn-primary">Open Fee Details</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not classes %}
+                    <tr><td colspan="4" class="text-center text-muted">No classes defined.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

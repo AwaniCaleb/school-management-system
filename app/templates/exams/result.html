@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Result Card - {{ stu.name }} - School ERP{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Student Result Card</h1>
+            <button class="btn btn-outline-secondary shadow-sm" onclick="window.print()">
+                <i class="fas fa-print me-1"></i> Print
+            </button>
+        </div>
+
+        <div class="card shadow mb-4" id="printable-result">
+            <div class="card-header py-4 bg-white text-center border-bottom">
+                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                <h2 class="fw-bold mb-1">Academic Progress Report</h2>
+                <p class="text-muted mb-0">Exam: {{ exam.name }} ({{ exam.exam_type }})</p>
+            </div>
+            <div class="card-body p-5">
+                <div class="row mb-5">
+                    <div class="col-md-6">
+                        <p class="mb-1 text-muted small text-uppercase">Student Name</p>
+                        <h5 class="fw-bold">{{ stu.name }}</h5>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-1 text-muted small text-uppercase">Roll Number</p>
+                        <h5 class="fw-bold">{{ stu.roll_no }}</h5>
+                    </div>
+                    <div class="col-md-3">
+                        <p class="mb-1 text-muted small text-uppercase">Class & Section</p>
+                        <h5 class="fw-bold">{{ stu.student_class.class_name }} - {{ stu.student_class.section }}</h5>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-5">
+                    <table class="table table-bordered">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Subject</th>
+                                <th class="text-center">Max Marks</th>
+                                <th class="text-center">Marks Obtained</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in results %}
+                            <tr>
+                                <td>{{ r.subject_name }}</td>
+                                <td class="text-center">100</td>
+                                <td class="text-center fw-bold">{{ r.marks }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">{{ max_total }}</th>
+                                <th class="text-center fw-bold">{{ total }}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="row text-center mt-5">
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <p class="text-muted small mb-1 text-uppercase">Percentage</p>
+                            <h3 class="fw-bold mb-0 {{ 'text-success' if percentage >= 33 else 'text-danger' }}">
+                                {{ "%.2f"|format(percentage) }}%
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <p class="text-muted small mb-1 text-uppercase">Result Status</p>
+                            <h3 class="fw-bold mb-0 {{ 'text-success' if percentage >= 33 else 'text-primary' }}">
+                                {{ 'PASS' if percentage >= 33 else 'FAIL' }}
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="border rounded p-3 bg-light">
+                            <p class="text-muted small mb-1 text-uppercase">Grade</p>
+                            <h3 class="fw-bold mb-0 text-primary">
+                                {% if percentage >= 90 %}A+
+                                {% elif percentage >= 80 %}A
+                                {% elif percentage >= 60 %}B
+                                {% elif percentage >= 33 %}C
+                                {% else %}F{% endif %}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white py-4 text-center border-top">
+                <div class="row">
+                    <div class="col-4">
+                        <hr class="w-75 mx-auto">
+                        <p class="small text-muted">Class Teacher</p>
+                    </div>
+                    <div class="col-4"></div>
+                    <div class="col-4">
+                        <hr class="w-75 mx-auto">
+                        <p class="small text-muted">Principal Signature</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mb-5">
+            <a href="{{ url_for('classes.class_detail', class_id=stu.class_id) }}" class="btn btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left me-1"></i> Back to Class
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #printable-result, #printable-result * { visibility: visible; }
+    #printable-result { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Add Class - School ERP{% endblock %}
+{% block content %}
+<div class="card shadow max-width-600 mx-auto">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Add New Class</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Class Name</label>
+                <input type="text" name="class_name" class="form-control" placeholder="e.g. 10th" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Section</label>
+                <input type="text" name="section" class="form-control" placeholder="A, B, Sci, etc." required>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Create Class</button>
+                <a href="{{ url_for('classes.list_classes') }}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
