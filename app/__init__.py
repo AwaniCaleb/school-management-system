@@ -11,7 +11,7 @@ def create_app(test_config=None):
 
     # Default configuration
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=os.environ.get('SECRET_KEY', 'dev_key_for_fyp_project'),
         SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.root_path, '../school_new.db'),
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
     )
@@ -37,5 +37,13 @@ def create_app(test_config=None):
     app.register_blueprint(api.bp)
     app.register_blueprint(settings.bp)
     app.register_blueprint(student_portal.bp)
+
+    from app.utils import is_subject_teacher, can_manage_class
+    @app.context_processor
+    def utility_processor():
+        return dict(
+            is_subject_teacher=is_subject_teacher,
+            can_manage_class=can_manage_class
+        )
 
     return app

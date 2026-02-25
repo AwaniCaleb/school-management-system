@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort, Response, send_file
-from app.models import Class, Student, Subject, Exam, Mark
+from app.models import Class, Student, Subject, Exam, Mark, SubjectTeacherAssignment
 from app.utils import login_required, require_role, is_subject_teacher, can_manage_class
 from app.extensions import db
 import io
@@ -22,7 +22,14 @@ def list_exams(class_id):
         if not name:
             flash("Exam name is required.", "danger")
         else:
-            new_exam = Exam(name=name, exam_type=exam_type, weight=weight, class_id=class_id, school_id=g.school.id)
+            new_exam = Exam(
+                name=name,
+                exam_type=exam_type,
+                weight=weight,
+                class_id=class_id,
+                school_id=g.school.id,
+                session_id=g.current_session.id
+            )
             db.session.add(new_exam)
             db.session.commit()
             flash("Exam added.", "s")
@@ -41,10 +48,13 @@ def enter_marks(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     exam = Exam.query.filter_by(id=exam_id, class_id=class_id, school_id=g.school.id).first_or_404()
 
+    assignments = SubjectTeacherAssignment.query.filter_by(class_id=class_id, session_id=exam.session_id).all()
+
     if request.method == "POST":
         for s in cls.students:
-            for sub in cls.subjects:
-                if not is_subject_teacher(sub):
+            for a in assignments:
+                sub = a.subject
+                if not is_subject_teacher(a):
                     continue
 
                 field_name = f"marks_{s.id}_{sub.id}"
@@ -71,6 +81,7 @@ def enter_marks(class_id):
                            cls=cls,
                            exam=exam,
                            marks_map=marks_map,
+                           assignments=assignments,
                            is_subject_teacher=is_subject_teacher)
 
 @bp.route("/result/<int:student_id>")
@@ -80,7 +91,7 @@ def student_result(student_id):
     exam_id = request.args.get("exam_id")
 
     if not exam_id:
-        latest_exam = Exam.query.filter_by(class_id=stu.class_id).order_by(Exam.id.desc()).first()
+        latest_exam = Exam.query.filter_by(class_id=stu.class_id, school_id=g.school.id).order_by(Exam.id.desc()).first()
         if not latest_exam:
             flash("No exams for this class.", "danger")
             return redirect(url_for("classes.class_detail", class_id=stu.class_id))
@@ -89,10 +100,16 @@ def student_result(student_id):
     exam = Exam.query.filter_by(id=exam_id, class_id=stu.class_id).first_or_404()
     results = []
     total = 0
-    for sub in stu.student_class.subjects:
+    assignments = SubjectTeacherAssignment.query.filter_by(class_id=stu.class_id, session_id=exam.session_id).all()
+    for a in assignments:
+        sub = a.subject
         mark = Mark.query.filter_by(student_id=stu.id, subject_id=sub.id, exam_id=exam.id).first()
         val = mark.marks_obtained if mark else 0.0
-        results.append({'subject_name': sub.subject_name, 'marks': val})
+        results.append({
+            'subject_name': sub.subject_name,
+            'marks': val,
+            'verification_code': mark.verification_code if mark else 'N/A'
+        })
         total += val
 
     max_total = len(results) * 100
@@ -107,14 +124,14 @@ def class_results(class_id):
     exam_id = request.args.get("exam_id")
 
     if not exam_id:
-        latest_exam = Exam.query.filter_by(class_id=class_id).order_by(Exam.id.desc()).first()
+        latest_exam = Exam.query.filter_by(class_id=class_id, school_id=g.school.id).order_by(Exam.id.desc()).first()
         if not latest_exam:
             flash("No exams defined for this class.", "danger")
             return redirect(url_for("classes.class_detail", class_id=class_id))
         exam_id = latest_exam.id
 
     exam = Exam.query.filter_by(id=exam_id, class_id=class_id).first_or_404()
-    subject_count = len(cls.subjects)
+    subject_count = SubjectTeacherAssignment.query.filter_by(class_id=class_id, session_id=exam.session_id).count()
 
     student_results = []
     for s in cls.students:

@@ -12,9 +12,20 @@
 
         <div class="card shadow mb-4" id="printable-result">
             <div class="card-header py-4 bg-white text-center border-bottom">
-                <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                <h2 class="fw-bold mb-1">Academic Progress Report</h2>
-                <p class="text-muted mb-0">Exam: {{ exam.name }} ({{ exam.exam_type }})</p>
+                <div class="row align-items-center">
+                    <div class="col-md-2 d-none d-md-block text-start">
+                        <i class="fas fa-certificate fa-3x text-warning"></i>
+                    </div>
+                    <div class="col-md-8">
+                        <h2 class="fw-bold mb-0 text-primary">{{ g.school.name }}</h2>
+                        <p class="text-muted small mb-2">{{ g.school.address }}</p>
+                        <h4 class="fw-bold mb-1">Academic Progress Report</h4>
+                        <p class="mb-0">Session: {{ g.current_session.name }} | Exam: {{ exam.name }}</p>
+                    </div>
+                    <div class="col-md-2 d-none d-md-block text-end">
+                        <i class="fas fa-graduation-cap fa-3x text-primary"></i>
+                    </div>
+                </div>
             </div>
             <div class="card-body p-5">
                 <div class="row mb-5">
@@ -92,12 +103,19 @@
                 </div>
             </div>
             <div class="card-footer bg-white py-4 text-center border-top">
-                <div class="row">
+                <div class="row align-items-center">
                     <div class="col-4">
                         <hr class="w-75 mx-auto">
                         <p class="small text-muted">Class Teacher</p>
                     </div>
-                    <div class="col-4"></div>
+                    <div class="col-4 text-center">
+                        <div class="mb-2">
+                            <span class="small text-muted d-block">Verification ID</span>
+                            <span class="badge bg-light text-dark border fw-normal" style="font-family: monospace;">
+                                {{ results[0].verification_code if results else 'N/A' }}
+                            </span>
+                        </div>
+                    </div>
                     <div class="col-4">
                         <hr class="w-75 mx-auto">
                         <p class="small text-muted">Principal Signature</p>

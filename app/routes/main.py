@@ -11,7 +11,7 @@ def home():
     if g.user.role == 'student':
         return redirect(url_for('student_portal.dashboard'))
 
-    class_count = Class.query.filter_by(school_id=g.school.id, session_id=g.current_session.id).count()
+    class_count = Class.query.filter_by(school_id=g.school.id).count()
     student_count = Student.query.filter_by(school_id=g.school.id).count()
     exam_count = Exam.query.filter_by(school_id=g.school.id).count()
 

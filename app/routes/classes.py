@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort
-from app.models import Class, Student, Subject, Exam, User
+from app.models import Class, Student, Subject, Exam, User, SubjectTeacherAssignment
 from app.utils import login_required, require_role, can_manage_class
 from app.extensions import db
 
@@ -9,22 +9,24 @@ bp = Blueprint('classes', __name__)
 @login_required
 def list_classes():
     if g.user.role == 'teacher':
+        # For teachers, show classes where they are form teacher OR have a subject assignment in CURRENT session
         classes = Class.query.filter(
             Class.school_id == g.school.id,
-            Class.session_id == g.current_session.id,
             ((Class.form_teacher_id == g.user.id) |
-             (Class.subjects.any(Subject.teacher_id == g.user.id)))
-        ).order_by(Class.class_name, Class.section).all()
+             (Class.session_assignments.any(
+                 (SubjectTeacherAssignment.teacher_id == g.user.id) &
+                 (SubjectTeacherAssignment.session_id == g.current_session.id)
+             )))
+        ).order_by(Class.class_name, Class.section).distinct().all()
     elif g.user.role == 'student':
         if g.user.student_id:
             stu = Student.query.get(g.user.student_id)
-            classes = [stu.student_class] if stu.student_class and stu.student_class.session_id == g.current_session.id else []
+            classes = [stu.student_class] if stu.student_class else []
         else:
             classes = []
     else:
         classes = Class.query.filter_by(
-            school_id=g.school.id,
-            session_id=g.current_session.id
+            school_id=g.school.id
         ).order_by(Class.class_name, Class.section).all()
 
     return render_template("classes/list.html", classes=classes)
@@ -41,16 +43,14 @@ def add_class():
         else:
             existing = Class.query.filter_by(
                 school_id=g.school.id,
-                session_id=g.current_session.id,
                 class_name=name,
                 section=section
             ).first()
             if existing:
-                flash("Class already exists for this session!", "danger")
+                flash("Class already exists in the school directory!", "danger")
             else:
                 new_class = Class(
                     school_id=g.school.id,
-                    session_id=g.current_session.id,
                     class_name=name,
                     section=section
                 )
@@ -65,7 +65,15 @@ def add_class():
 @login_required
 def class_detail(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
-    if not can_manage_class(cls) and not any(s.teacher_id == g.user.id for s in cls.subjects):
+
+    # Check access
+    is_subject_assigned = SubjectTeacherAssignment.query.filter_by(
+        class_id=class_id,
+        session_id=g.current_session.id,
+        teacher_id=g.user.id
+    ).first() is not None
+
+    if not can_manage_class(cls) and not is_subject_assigned:
         if g.user.role != 'student' or (g.user.student_id and Student.query.get(g.user.student_id).class_id != class_id):
             abort(403)
 
@@ -133,40 +141,73 @@ def promote_class(class_id):
 
     return render_template("classes/promote.html", source=source, target_classes=target_classes)
 
-@bp.route("/add-subject/<int:class_id>", methods=["GET", "POST"])
+@bp.route("/subjects")
+@login_required
+def list_subjects():
+    subjects = Subject.query.filter_by(school_id=g.school.id).order_by(Subject.subject_name).all()
+    return render_template("subjects/list.html", subjects=subjects)
+
+@bp.route("/add-subject", methods=["GET", "POST"])
 @login_required
 @require_role("admin", "principal")
-def add_subject(class_id):
-    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
+def add_subject():
     if request.method == "POST":
         sub_name = request.form["subject"].strip()
         if not sub_name:
             flash("Subject name is required.", "danger")
         else:
-            new_sub = Subject(subject_name=sub_name, class_id=class_id, school_id=g.school.id)
+            new_sub = Subject(subject_name=sub_name, school_id=g.school.id)
             db.session.add(new_sub)
             db.session.commit()
-            flash("Subject added!", "s")
-            return redirect(url_for("classes.class_detail", class_id=class_id))
-
-    return render_template("subjects/add.html", cls=cls)
+            flash("Subject added to school directory!", "s")
+            return redirect(url_for("classes.list_subjects"))
+    return render_template("subjects/add.html", cls=None)
 
 @bp.route("/subject/<int:subject_id>/edit", methods=["GET", "POST"])
 @login_required
 @require_role("admin", "principal")
 def edit_subject(subject_id):
     sub = Subject.query.filter_by(id=subject_id, school_id=g.school.id).first_or_404()
+    if request.method == "POST":
+        sub.subject_name = request.form["subject"].strip()
+        db.session.commit()
+        flash("Subject updated!", "s")
+        return redirect(url_for("classes.list_subjects"))
+    return render_template("subjects/edit.html", sub=sub)
+
+@bp.route("/assign-teacher/<int:class_id>", methods=["GET", "POST"])
+@login_required
+@require_role("admin", "principal")
+def assign_teacher(class_id):
+    cls = Class.query.get_or_404(class_id)
+    subjects = Subject.query.filter_by(school_id=g.school.id).all()
     teachers = User.query.filter_by(school_id=g.school.id, role='teacher').all()
 
     if request.method == "POST":
-        sub.subject_name = request.form["subject"].strip()
+        subject_id = request.form.get("subject_id")
         teacher_id = request.form.get("teacher_id")
-        sub.teacher_id = int(teacher_id) if teacher_id else None
-        db.session.commit()
-        flash("Subject updated!", "s")
-        return redirect(url_for("classes.class_detail", class_id=sub.class_id))
 
-    return render_template("subjects/edit.html", sub=sub, teachers=teachers)
+        # Upsert assignment for current session
+        assign = SubjectTeacherAssignment.query.filter_by(
+            session_id=g.current_session.id,
+            class_id=class_id,
+            subject_id=subject_id
+        ).first()
+
+        if not assign:
+            assign = SubjectTeacherAssignment(
+                session_id=g.current_session.id,
+                class_id=class_id,
+                subject_id=subject_id
+            )
+            db.session.add(assign)
+
+        assign.teacher_id = teacher_id if teacher_id else None
+        db.session.commit()
+        flash("Teacher assigned successfully!", "s")
+        return redirect(url_for('classes.class_detail', class_id=class_id))
+
+    return render_template("subjects/assign.html", cls=cls, subjects=subjects, teachers=teachers)
 
 @bp.route("/subject/<int:subject_id>/delete", methods=["POST"])
 @login_required

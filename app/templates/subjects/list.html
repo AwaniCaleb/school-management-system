@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}School Subjects{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Subjects Directory</h1>
+    {% if g.user.role in ['admin', 'principal'] %}
+    <a href="{{ url_for('classes.add_subject') }}" class="btn btn-success shadow-sm">
+        <i class="fas fa-plus fa-sm"></i> Add New Subject
+    </a>
+    {% endif %}
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject Name</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sub in subjects %}
+                    <tr>
+                        <td class="fw-bold">{{ sub.subject_name }}</td>
+                        <td class="text-center">
+                            {% if g.user.role in ['admin', 'principal'] %}
+                            <a href="{{ url_for('classes.edit_subject', subject_id=sub.id) }}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

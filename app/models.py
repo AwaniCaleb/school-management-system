@@ -1,5 +1,6 @@
 from app.extensions import db
 from datetime import datetime
+import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class School(db.Model):
@@ -31,8 +32,10 @@ class Session(db.Model):
     start_date = db.Column(db.String(10))
     end_date = db.Column(db.String(10))
 
-    classes = db.relationship('Class', backref='session', cascade="all, delete-orphan", lazy=True)
+    exams = db.relationship('Exam', backref='session', cascade="all, delete-orphan", lazy=True)
     fee_structures = db.relationship('FeeStructure', backref='session', cascade="all, delete-orphan", lazy=True)
+    attendance_sessions = db.relationship('AttendanceSession', backref='session', cascade="all, delete-orphan", lazy=True)
+    subject_assignments = db.relationship('SubjectTeacherAssignment', backref='session', cascade="all, delete-orphan", lazy=True)
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -55,28 +58,35 @@ class Class(db.Model):
     __tablename__ = 'classes'
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
-    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
     class_name = db.Column(db.String(50), nullable=False)
     section = db.Column(db.String(10), nullable=False)
     form_teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
 
-    __table_args__ = (db.UniqueConstraint('session_id', 'class_name', 'section', name='_session_class_section_uc'),)
+    __table_args__ = (db.UniqueConstraint('school_id', 'class_name', 'section', name='_school_class_section_uc'),)
 
     form_teacher = db.relationship('User', foreign_keys=[form_teacher_id], backref='assigned_classes')
     students = db.relationship('Student', foreign_keys='Student.class_id', backref='student_class', lazy=True)
-    subjects = db.relationship('Subject', backref='subject_class', cascade="all, delete-orphan", lazy=True)
     exams = db.relationship('Exam', backref='exam_class', cascade="all, delete-orphan", lazy=True)
     attendance_sessions = db.relationship('AttendanceSession', backref='session_class', cascade="all, delete-orphan", lazy=True)
+    subject_assignments = db.relationship('SubjectTeacherAssignment', backref='assigned_class', cascade="all, delete-orphan", lazy=True)
 
 class Subject(db.Model):
     __tablename__ = 'subjects'
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     subject_name = db.Column(db.String(100), nullable=False)
+
+    assignments = db.relationship('SubjectTeacherAssignment', backref='subject', cascade="all, delete-orphan", lazy=True)
+
+class SubjectTeacherAssignment(db.Model):
+    __tablename__ = 'subject_teacher_assignments'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
 
-    teacher = db.relationship('User', foreign_keys=[teacher_id], backref='taught_subjects')
+    teacher = db.relationship('User', backref='subject_assignments')
 
 class Student(db.Model):
     __tablename__ = 'students'
@@ -108,6 +118,7 @@ class Exam(db.Model):
     __tablename__ = 'exams'
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     exam_type = db.Column(db.String(50))
@@ -117,14 +128,17 @@ class Exam(db.Model):
 
 class Mark(db.Model):
     __tablename__ = 'marks'
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), primary_key=True)
-    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), primary_key=True)
-    exam_id = db.Column(db.Integer, db.ForeignKey('exams.id', ondelete='CASCADE'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='CASCADE'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subjects.id', ondelete='CASCADE'), nullable=False)
+    exam_id = db.Column(db.Integer, db.ForeignKey('exams.id', ondelete='CASCADE'), nullable=False)
     marks_obtained = db.Column(db.Float, default=0.0)
+    verification_code = db.Column(db.String(36), default=lambda: str(uuid.uuid4()))
 
 class AttendanceSession(db.Model):
     __tablename__ = 'attendance_sessions'
     id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     date = db.Column(db.String(10), nullable=False) # YYYY-MM-DD
     __table_args__ = (db.UniqueConstraint('class_id', 'date', name='_class_date_uc'),)

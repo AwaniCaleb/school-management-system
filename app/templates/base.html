@@ -125,8 +125,11 @@
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
                 {% endif %}
-                <a href="{{ url_for('classes.list_classes') }}" class="list-group-item list-group-item-action {% if 'classes' in request.endpoint %}active{% endif %}">
+                <a href="{{ url_for('classes.list_classes') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'classes.list_classes' %}active{% endif %}">
                     <i class="fas fa-chalkboard-teacher"></i> Classes
+                </a>
+                <a href="{{ url_for('classes.list_subjects') }}" class="list-group-item list-group-item-action {% if 'subjects' in request.endpoint %}active{% endif %}">
+                    <i class="fas fa-book"></i> Subjects
                 </a>
                 <a href="{{ url_for('students.directory') }}" class="list-group-item list-group-item-action {% if 'students' in request.endpoint %}active{% endif %}">
                     <i class="fas fa-user-graduate"></i> Students
@@ -210,6 +213,40 @@
         document.getElementById("menu-toggle")?.addEventListener("click", function(e) {
             e.preventDefault();
             document.getElementById("wrapper").classList.toggle("toggled");
+        });
+
+        /** Simple Table Sorter **/
+        document.querySelectorAll('table').forEach(table => {
+            table.querySelectorAll('th').forEach((header, index) => {
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', () => {
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+                    const isAscending = header.dataset.order !== 'asc';
+
+                    rows.sort((a, b) => {
+                        const aColText = a.children[index].textContent.trim();
+                        const bColText = b.children[index].textContent.trim();
+
+                        if (!isNaN(aColText) && !isNaN(bColText)) {
+                            return isAscending ? aColText - bColText : bColText - aColText;
+                        }
+                        return isAscending
+                            ? aColText.localeCompare(bColText)
+                            : bColText.localeCompare(aColText);
+                    });
+
+                    rows.forEach(row => tbody.appendChild(row));
+                    header.dataset.order = isAscending ? 'asc' : 'desc';
+
+                    // Update arrows
+                    table.querySelectorAll('th i.sort-icon').forEach(i => i.remove());
+                    const icon = document.createElement('i');
+                    icon.className = `fas fa-sort-${isAscending ? 'up' : 'down'} ms-1 sort-icon small`;
+                    header.appendChild(icon);
+                });
+            });
         });
     </script>
     {% block scripts %}{% endblock %}
