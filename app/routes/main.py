@@ -33,4 +33,4 @@ def search():
 
 @bp.route("/howto")
 def howto():
-    return render_template('howto.html')
+    return render_template('main/howto.html')

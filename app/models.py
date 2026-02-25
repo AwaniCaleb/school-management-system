@@ -38,14 +38,22 @@ class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    roll_no = db.Column(db.String(20), nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
+    roll_no = db.Column(db.String(20)) # Made optional for general directory
+    class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='SET NULL'))
+
+    # Expanded Information
     gender = db.Column(db.String(10))
     dob = db.Column(db.String(10))
+    blood_group = db.Column(db.String(5))
+    religion = db.Column(db.String(50))
+    state_of_origin = db.Column(db.String(50))
     address = db.Column(db.String(255))
     guardian_name = db.Column(db.String(100))
+    guardian_phone = db.Column(db.String(20))
     contact_no = db.Column(db.String(20))
-    __table_args__ = (db.UniqueConstraint('class_id', 'roll_no', name='_class_roll_uc'),)
+    enrollment_date = db.Column(db.String(10), default=lambda: datetime.utcnow().strftime('%Y-%m-%d'))
+    status = db.Column(db.String(20), default='Active') # Active, Graduated, Withdrawn
+    medical_notes = db.Column(db.Text)
 
     marks = db.relationship('Mark', backref='student', cascade="all, delete-orphan", lazy=True)
     attendance_records = db.relationship('AttendanceRecord', backref='student', cascade="all, delete-orphan", lazy=True)

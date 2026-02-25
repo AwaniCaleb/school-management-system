@@ -5,36 +5,68 @@ from app.extensions import db
 
 bp = Blueprint('students', __name__)
 
-@bp.route("/add_student/<int:class_id>", methods=["GET", "POST"])
+@bp.route("/students")
 @login_required
-def add_student(class_id):
+def directory():
+    students = Student.query.order_by(Student.name).all()
+    return render_template("students/directory.html", students=students)
+
+@bp.route("/student/<int:student_id>")
+@login_required
+def profile(student_id):
+    stu = Student.query.get_or_404(student_id)
+    return render_template("students/profile.html", stu=stu)
+
+@bp.route("/add_student", methods=["GET", "POST"])
+@login_required
+def enroll_student():
+    # General enrollment (not tied to a class)
+    if request.method == "POST":
+        new_student = Student(
+            name=request.form["name"].strip(),
+            gender=request.form.get("gender"),
+            dob=request.form.get("dob"),
+            blood_group=request.form.get("blood_group"),
+            religion=request.form.get("religion"),
+            state_of_origin=request.form.get("state_of_origin"),
+            guardian_name=request.form.get("guardian_name"),
+            guardian_phone=request.form.get("guardian_phone"),
+            contact_no=request.form.get("contact_no"),
+            address=request.form.get("address"),
+            medical_notes=request.form.get("medical_notes")
+        )
+        db.session.add(new_student)
+        db.session.commit()
+        flash("Student enrolled in system!", "s")
+        return redirect(url_for("students.directory"))
+    return render_template("students/add.html", cls=None)
+
+@bp.route("/add_to_class/<int:class_id>", methods=["GET", "POST"])
+@login_required
+def add_to_class(class_id):
     cls = Class.query.get_or_404(class_id)
     if request.method == "POST":
-        name = request.form["name"].strip()
-        roll = request.form["roll_no"].strip()
-        if not name or not roll:
-            flash("Name and roll number are required.", "danger")
+        student_id = request.form.get("student_id")
+        roll_no = request.form.get("roll_no")
+
+        if not student_id or not roll_no:
+            flash("Student and Roll Number are required.", "danger")
         else:
-            existing = Student.query.filter_by(class_id=class_id, roll_no=roll).first()
+            stu = Student.query.get(student_id)
+            # Check if roll no already used in this class
+            existing = Student.query.filter_by(class_id=class_id, roll_no=roll_no).first()
             if existing:
-                flash("Roll number already exists in this class!", "danger")
+                flash(f"Roll number {roll_no} already exists in this class!", "danger")
             else:
-                new_student = Student(
-                    name=name,
-                    roll_no=roll,
-                    class_id=class_id,
-                    gender=request.form.get("gender"),
-                    dob=request.form.get("dob"),
-                    guardian_name=request.form.get("guardian_name"),
-                    contact_no=request.form.get("contact_no"),
-                    address=request.form.get("address")
-                )
-                db.session.add(new_student)
+                stu.class_id = class_id
+                stu.roll_no = roll_no
                 db.session.commit()
-                flash("Student added!", "s")
+                flash(f"{stu.name} added to {cls.class_name}!", "s")
                 return redirect(url_for("classes.class_detail", class_id=class_id))
 
-    return render_template("students/add.html", cls=cls)
+    # Get students not currently in any class (or allow moving)
+    available_students = Student.query.filter((Student.class_id == None) | (Student.class_id != class_id)).all()
+    return render_template("students/add_to_class.html", cls=cls, available_students=available_students)
 
 @bp.route("/student/<int:student_id>/edit", methods=["GET", "POST"])
 @login_required

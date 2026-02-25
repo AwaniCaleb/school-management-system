@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Student Directory - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Student Directory</h1>
+    <a href="{{ url_for('students.enroll_student') }}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-user-plus fa-sm"></i> Enroll New Student
+    </a>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Roll No</th>
+                        <th>Gender</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td class="fw-bold">{{ s.name }}</td>
+                        <td>{{ s.student_class.class_name if s.student_class else 'Unassigned' }}</td>
+                        <td>{{ s.roll_no or '-' }}</td>
+                        <td>{{ s.gender }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if s.status == 'Active' else 'secondary' }}">
+                                {{ s.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('students.profile', student_id=s.id) }}" class="btn btn-sm btn-outline-info">Profile</a>
+                            {% if s.student_class %}
+                            <a href="{{ url_for('exams.student_result', student_id=s.id) }}" class="btn btn-sm btn-outline-primary">Result</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -41,7 +41,6 @@ def seed_db():
         nigerian_subjects = ['Mathematics', 'English Language', 'Civic Education', 'Biology', 'Economics', 'Government', 'Physics', 'Chemistry', 'Agricultural Science', 'Literature-in-English']
 
         for c in db_classes:
-            # Pick 5 random subjects for each class
             selected_subs = random.sample(nigerian_subjects, 6)
             for s_name in selected_subs:
                 sub = Subject(subject_name=s_name, class_id=c.id)
@@ -49,10 +48,13 @@ def seed_db():
 
         db.session.commit()
 
-        # Nigerian Names
+        # Nigerian Names and Data
         first_names_m = ['Olumide', 'Emeka', 'Tunde', 'Abubakar', 'Chinedu', 'Adebayo', 'Femi', 'Musa', 'Ibrahim', 'Oche']
         first_names_f = ['Chioma', 'Adesua', 'Fatima', 'Ngozi', 'Zainab', 'Funke', 'Ifunanya', 'Bisi', 'Oluwaseun', 'Amaka']
         last_names = ['Okonkwo', 'Adeyemi', 'Balogun', 'Bello', 'Eze', 'Danladi', 'Ojo', 'Nwosu', 'Gbadamosi', 'Okafor']
+        states = ['Lagos', 'Oyo', 'Kano', 'Enugu', 'Rivers', 'Kaduna', 'Abuja FCT', 'Ogun', 'Edo', 'Delta']
+        religions = ['Christianity', 'Islam', 'Other']
+        blood_groups = ['A+', 'B+', 'O+', 'AB+', 'O-']
 
         # Add Students
         for c in db_classes:
@@ -66,11 +68,32 @@ def seed_db():
                     class_id=c.id,
                     gender=gender,
                     dob=(date.today() - timedelta(days=random.randint(4000, 6000))).isoformat(),
+                    blood_group=random.choice(blood_groups),
+                    religion=random.choice(religions),
+                    state_of_origin=random.choice(states),
                     guardian_name=f"{random.choice(last_names)} {random.choice(first_names_m)}",
-                    contact_no=f"080{random.randint(10000000, 99999999)}",
-                    address=f"{random.randint(1, 100)} Herbert Macaulay Way, Yaba, Lagos"
+                    guardian_phone=f"080{random.randint(10000000, 99999999)}",
+                    contact_no=f"081{random.randint(10000000, 99999999)}",
+                    address=f"{random.randint(1, 100)} Herbert Macaulay Way, Yaba, Lagos",
+                    medical_notes=random.choice(['None', 'Allergic to Peanuts', 'Asthmatic', 'None', 'None'])
                 )
                 db.session.add(s)
+
+        # Add some unassigned students
+        for i in range(5):
+            gender = random.choice(['Male', 'Female'])
+            f_name = random.choice(first_names_m if gender == 'Male' else first_names_f)
+            l_name = random.choice(last_names)
+            s = Student(
+                name=f"{f_name} {l_name}",
+                gender=gender,
+                dob=(date.today() - timedelta(days=random.randint(4000, 6000))).isoformat(),
+                blood_group=random.choice(blood_groups),
+                religion=random.choice(religions),
+                state_of_origin=random.choice(states),
+                status='Active'
+            )
+            db.session.add(s)
 
         db.session.commit()
 
@@ -80,10 +103,13 @@ def seed_db():
             Exam(name='First Term Mid-Term', exam_type='Theory', weight=0.3, class_id=jss1a.id),
             Exam(name='First Term Examination', exam_type='Theory', weight=0.7, class_id=jss1a.id)
         ]
-        db.session.add_all(exams)
+        db_exams = []
+        for ex in exams:
+            db.session.add(ex)
+            db_exams.append(ex)
         db.session.commit()
 
-        for e in exams:
+        for e in db_exams:
             for s in jss1a.students:
                 for sub in jss1a.subjects:
                     mark = Mark(
@@ -97,14 +123,14 @@ def seed_db():
         # Add Attendance for JSS 1A
         for i in range(5):
             d = date.today() - timedelta(days=i)
-            session = AttendanceSession(class_id=jss1a.id, date=d.isoformat())
-            db.session.add(session)
+            session_row = AttendanceSession(class_id=jss1a.id, date=d.isoformat())
+            db.session.add(session_row)
             db.session.commit()
             for s in jss1a.students:
                 record = AttendanceRecord(
-                    session_id=session.id,
+                    session_id=session_row.id,
                     student_id=s.id,
-                    status=random.choice(['P', 'P', 'P', 'A']) # Mostly present
+                    status=random.choice(['P', 'P', 'P', 'A'])
                 )
                 db.session.add(record)
 
@@ -112,23 +138,21 @@ def seed_db():
         for c in db_classes:
             f1 = FeeStructure(name='Tuition Fee', amount=45000.0, due_date='2025-05-15', class_id=c.id)
             f2 = FeeStructure(name='Development Levy', amount=15000.0, due_date='2025-05-15', class_id=c.id)
-            f3 = FeeStructure(name='ICT Charges', amount=5000.0, due_date='2025-05-15', class_id=c.id)
-            db.session.add_all([f1, f2, f3])
+            db.session.add_all([f1, f2])
             db.session.commit()
 
-            # Partial payments for some students
             for s in c.students[:3]:
                 pay = FeePayment(
                     student_id=s.id,
                     fee_id=f1.id,
-                    paid_amount=25000.0,
+                    paid_amount=random.choice([10000, 25000, 45000]),
                     paid_on=date.today().isoformat(),
                     mode='Bank Transfer'
                 )
                 db.session.add(pay)
 
         db.session.commit()
-        print("Database initialized and seeded with Nigerian data successfully!")
+        print("Database initialized and seeded with comprehensive Nigerian data successfully!")
 
 if __name__ == "__main__":
     seed_db()

@@ -1,51 +1,82 @@
 {% extends "base.html" %}
-{% block title %}Edit Student - School ERP{% endblock %}
+{% block title %}Edit Student - {{ stu.name }}{% endblock %}
 {% block content %}
-<div class="card shadow max-width-600 mx-auto">
+<div class="card shadow mb-4">
     <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Edit Student: {{ stu.name }}</h6>
+        <h6 class="m-0 font-weight-bold text-primary">Edit Student Profile</h6>
     </div>
     <div class="card-body">
         <form method="POST">
             <div class="row">
-                <div class="col-md-8 mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="name" class="form-control" value="{{ stu.name }}" required>
+                <!-- Personal Info -->
+                <div class="col-md-6">
+                    <h5 class="mb-3 text-muted"><i class="fas fa-user me-2"></i> Personal Information</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ stu.name }}" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" class="form-select">
+                                <option value="Male" {{ 'selected' if stu.gender == 'Male' }}>Male</option>
+                                <option value="Female" {{ 'selected' if stu.gender == 'Female' }}>Female</option>
+                                <option value="Other" {{ 'selected' if stu.gender == 'Other' }}>Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" name="dob" class="form-control" value="{{ stu.dob }}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Blood Group</label>
+                            <input type="text" name="blood_group" class="form-control" value="{{ stu.blood_group }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Religion</label>
+                            <input type="text" name="religion" class="form-control" value="{{ stu.religion }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">State of Origin</label>
+                        <input type="text" name="state_of_origin" class="form-control" value="{{ stu.state_of_origin }}">
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Roll Number</label>
-                    <input type="text" name="roll_no" class="form-control" value="{{ stu.roll_no }}" required>
+
+                <!-- Contact & Guardian -->
+                <div class="col-md-6">
+                    <h5 class="mb-3 text-muted"><i class="fas fa-home me-2"></i> Contact & Guardian</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Guardian Name</label>
+                        <input type="text" name="guardian_name" class="form-control" value="{{ stu.guardian_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Guardian Phone</label>
+                        <input type="text" name="guardian_phone" class="form-control" value="{{ stu.guardian_phone }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Student Contact No</label>
+                        <input type="text" name="contact_no" class="form-control" value="{{ stu.contact_no }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Residential Address</label>
+                        <textarea name="address" class="form-control" rows="2">{{ stu.address }}</textarea>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Gender</label>
-                    <select name="gender" class="form-select">
-                        <option value="Male" {{ 'selected' if stu.gender == 'Male' }}>Male</option>
-                        <option value="Female" {{ 'selected' if stu.gender == 'Female' }}>Female</option>
-                        <option value="Other" {{ 'selected' if stu.gender == 'Other' }}>Other</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Date of Birth</label>
-                    <input type="date" name="dob" class="form-control" value="{{ stu.dob }}">
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Guardian Name</label>
-                <input type="text" name="guardian_name" class="form-control" value="{{ stu.guardian_name }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Contact Number</label>
-                <input type="text" name="contact_no" class="form-control" value="{{ stu.contact_no }}">
-            </div>
+
+            <hr>
+
             <div class="mb-4">
-                <label class="form-label">Address</label>
-                <textarea name="address" class="form-control" rows="2">{{ stu.address }}</textarea>
+                <h5 class="mb-3 text-muted"><i class="fas fa-notes-medical me-2"></i> Medical Notes</h5>
+                <textarea name="medical_notes" class="form-control" rows="3">{{ stu.medical_notes }}</textarea>
             </div>
+
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a href="{{ url_for('classes.class_detail', class_id=stu.class_id) }}" class="btn btn-light">Cancel</a>
+                <button type="submit" class="btn btn-warning btn-lg">Save Changes</button>
+                <a href="{{ url_for('students.profile', student_id=stu.id) }}" class="btn btn-light">Cancel</a>
             </div>
         </form>
     </div>
