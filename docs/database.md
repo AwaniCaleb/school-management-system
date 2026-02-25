@@ -6,12 +6,21 @@ This project uses SQLite with SQLAlchemy ORM.
 
 ```mermaid
 erDiagram
+    SCHOOL ||--o{ SESSION : owns
+    SCHOOL ||--o{ USER : contains
+    SCHOOL ||--o{ CLASS : has
+    SCHOOL ||--o{ STUDENT : manages
+
+    SESSION ||--o{ EXAM : scoped_to
+    SESSION ||--o{ FEE_STRUCTURE : scoped_to
+    SESSION ||--o{ ATTENDANCE_SESSION : scoped_to
+    SESSION ||--o{ SUBJECT_TEACHER_ASSIGNMENT : defines
+
     USER ||--o{ CLASS : form_teacher_of
-    USER ||--o{ SUBJECT : teaches
+    USER ||--o{ SUBJECT_TEACHER_ASSIGNMENT : teaches
     USER ||--o| STUDENT : links_to
 
     CLASS ||--o{ STUDENT : contains
-    CLASS ||--o{ SUBJECT : has
     CLASS ||--o{ EXAM : schedules
     CLASS ||--o{ ATTENDANCE_SESSION : tracks
     CLASS ||--o{ FEE_STRUCTURE : defines
@@ -21,10 +30,25 @@ erDiagram
     STUDENT ||--o{ FEE_PAYMENT : makes
 
     SUBJECT ||--o{ MARK : recorded_in
+    SUBJECT ||--o{ SUBJECT_TEACHER_ASSIGNMENT : assigned_to
     EXAM ||--o{ MARK : belongs_to
 
     ATTENDANCE_SESSION ||--o{ ATTENDANCE_RECORD : contains
     FEE_STRUCTURE ||--o{ FEE_PAYMENT : paid_for
+
+    SCHOOL {
+        int id
+        string name
+        string subdomain
+        string logo_url
+    }
+
+    SESSION {
+        int id
+        int school_id
+        string name
+        bool is_current
+    }
 
     USER {
         int id
@@ -62,8 +86,15 @@ erDiagram
 
     SUBJECT {
         int id
+        int school_id
         string subject_name
+    }
+
+    SUBJECT_TEACHER_ASSIGNMENT {
+        int id
+        int session_id
         int class_id
+        int subject_id
         int teacher_id
     }
 
