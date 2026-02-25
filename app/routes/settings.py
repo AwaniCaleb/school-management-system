@@ -12,16 +12,19 @@ def index():
     if request.method == "POST":
         if g.user.role not in ["admin", "principal"]:
             abort(403)
-        # Update school name
-        school_name = request.form.get("school_name")
-        if school_name:
-            s = Setting.query.filter_by(school_id=g.school.id, key="school_name").first()
-            if not s:
-                s = Setting(school_id=g.school.id, key="school_name")
-            s.value = school_name
-            db.session.add(s)
-            db.session.commit()
-            flash("Settings updated.", "s")
+
+        keys = ["school_name", "grade_a", "grade_b", "grade_c", "grade_d"]
+        for key in keys:
+            val = request.form.get(key)
+            if val is not None:
+                s = Setting.query.filter_by(school_id=g.school.id, key=key).first()
+                if not s:
+                    s = Setting(school_id=g.school.id, key=key)
+                s.value = val
+                db.session.add(s)
+
+        db.session.commit()
+        flash("Settings updated successfully!", "s")
         return redirect(url_for("settings.index"))
 
     settings = {s.key: s.value for s in Setting.query.filter_by(school_id=g.school.id).all()}

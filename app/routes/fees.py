@@ -9,19 +9,22 @@ bp = Blueprint('fees', __name__)
 @bp.route("/fees")
 @login_required
 def dashboard():
+    from app.models import SubjectTeacherAssignment
     if g.user.role == 'teacher':
+        # Show classes where they are form teacher OR have a subject assignment in CURRENT session
         classes = Class.query.filter(
             Class.school_id == g.school.id,
-            Class.session_id == g.current_session.id,
             ((Class.form_teacher_id == g.user.id) |
-             (Class.subjects.any(Subject.teacher_id == g.user.id)))
-        ).all()
+             (Class.subject_assignments.any(
+                 (SubjectTeacherAssignment.teacher_id == g.user.id) &
+                 (SubjectTeacherAssignment.session_id == g.current_session.id)
+             )))
+        ).distinct().all()
     elif g.user.role == 'student':
         return redirect(url_for('student_portal.dashboard'))
     else:
         classes = Class.query.filter_by(
-            school_id=g.school.id,
-            session_id=g.current_session.id
+            school_id=g.school.id
         ).all()
     return render_template("fees/dashboard.html", classes=classes)
 

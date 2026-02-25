@@ -51,16 +51,13 @@
                             <td class="text-end">{{ "%.2f"|format(percentage) }}%</td>
                             <td class="text-center">
                                 <span class="badge bg-primary">
-                                    {% if percentage >= 90 %}A+
-                                    {% elif percentage >= 80 %}A
-                                    {% elif percentage >= 60 %}B
-                                    {% elif percentage >= 33 %}C
-                                    {% else %}F{% endif %}
+                                    {{ calculate_grade(percentage) }}
                                 </span>
                             </td>
                             <td class="text-center">
-                                <span class="badge {{ 'bg-success' if percentage >= 33 else 'bg-danger' }}">
-                                    {{ 'PASS' if percentage >= 33 else 'FAIL' }}
+                                {% set grade = calculate_grade(percentage) %}
+                                <span class="badge {{ 'bg-success' if grade != 'F' else 'bg-danger' }}">
+                                    {{ 'PASS' if grade != 'F' else 'FAIL' }}
                                 </span>
                             </td>
                             <td class="text-center">

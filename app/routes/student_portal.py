@@ -24,10 +24,23 @@ def dashboard():
     max_total = 0
     percentage = 0
 
-    if stu.student_class and stu.student_class.session_id == g.current_session.id:
-        latest_exam = Exam.query.filter_by(class_id=stu.class_id, school_id=g.school.id).order_by(Exam.id.desc()).first()
+    if stu.student_class:
+        latest_exam = Exam.query.filter_by(
+            class_id=stu.class_id,
+            school_id=g.school.id,
+            session_id=g.current_session.id
+        ).order_by(Exam.id.desc()).first()
+
         if latest_exam:
-            for sub in stu.student_class.subjects:
+            # For results, we should probably look at subjects assigned to this class in THIS session
+            from app.models import SubjectTeacherAssignment, Subject
+            assignments = SubjectTeacherAssignment.query.filter_by(
+                class_id=stu.class_id,
+                session_id=g.current_session.id
+            ).all()
+
+            for assign in assignments:
+                sub = assign.subject
                 mark = Mark.query.filter_by(student_id=stu.id, subject_id=sub.id, exam_id=latest_exam.id).first()
                 val = mark.marks_obtained if mark else 0.0
                 results.append({'subject_name': sub.subject_name, 'marks': val})

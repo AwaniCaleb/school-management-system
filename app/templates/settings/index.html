@@ -17,6 +17,29 @@
                         <label class="form-label">School Name</label>
                         <input type="text" name="school_name" class="form-control" value="{{ settings.get('school_name', 'School ERP') }}">
                     </div>
+                    <hr>
+                    <h6>Grading Thresholds (%)</h6>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="small">Grade A >=</label>
+                            <input type="number" name="grade_a" class="form-control" value="{{ settings.get('grade_a', '70') }}">
+                        </div>
+                        <div class="col">
+                            <label class="small">Grade B >=</label>
+                            <input type="number" name="grade_b" class="form-control" value="{{ settings.get('grade_b', '60') }}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="small">Grade C >=</label>
+                            <input type="number" name="grade_c" class="form-control" value="{{ settings.get('grade_c', '50') }}">
+                        </div>
+                        <div class="col">
+                            <label class="small">Grade D >=</label>
+                            <input type="number" name="grade_d" class="form-control" value="{{ settings.get('grade_d', '40') }}">
+                        </div>
+                    </div>
+                    <p class="text-muted small">Percentages below Grade D will be marked as F.</p>
                     <button type="submit" class="btn btn-primary">Save Settings</button>
                 </form>
 

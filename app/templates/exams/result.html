@@ -17,8 +17,8 @@
                         <i class="fas fa-certificate fa-3x text-warning"></i>
                     </div>
                     <div class="col-md-8">
-                        <h2 class="fw-bold mb-0 text-primary">{{ g.school.name }}</h2>
-                        <p class="text-muted small mb-2">{{ g.school.address }}</p>
+                        <h2 class="fw-bold mb-0 text-primary">{{ g.settings.get('school_name', g.school.name) }}</h2>
+                        <p class="text-muted small mb-2">{{ g.settings.get('school_address', g.school.address) }}</p>
                         <h4 class="fw-bold mb-1">Academic Progress Report</h4>
                         <p class="mb-0">Session: {{ g.current_session.name }} | Exam: {{ exam.name }}</p>
                     </div>
@@ -83,8 +83,9 @@
                     <div class="col-md-4">
                         <div class="border rounded p-3 bg-light">
                             <p class="text-muted small mb-1 text-uppercase">Result Status</p>
-                            <h3 class="fw-bold mb-0 {{ 'text-success' if percentage >= 33 else 'text-primary' }}">
-                                {{ 'PASS' if percentage >= 33 else 'FAIL' }}
+                            {% set grade = calculate_grade(percentage) %}
+                            <h3 class="fw-bold mb-0 {{ 'text-success' if grade != 'F' else 'text-danger' }}">
+                                {{ 'PASS' if grade != 'F' else 'FAIL' }}
                             </h3>
                         </div>
                     </div>
@@ -92,11 +93,7 @@
                         <div class="border rounded p-3 bg-light">
                             <p class="text-muted small mb-1 text-uppercase">Grade</p>
                             <h3 class="fw-bold mb-0 text-primary">
-                                {% if percentage >= 90 %}A+
-                                {% elif percentage >= 80 %}A
-                                {% elif percentage >= 60 %}B
-                                {% elif percentage >= 33 %}C
-                                {% else %}F{% endif %}
+                                {{ calculate_grade(percentage) }}
                             </h3>
                         </div>
                     </div>

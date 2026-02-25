@@ -13,7 +13,7 @@ def list_classes():
         classes = Class.query.filter(
             Class.school_id == g.school.id,
             ((Class.form_teacher_id == g.user.id) |
-             (Class.session_assignments.any(
+             (Class.subject_assignments.any(
                  (SubjectTeacherAssignment.teacher_id == g.user.id) &
                  (SubjectTeacherAssignment.session_id == g.current_session.id)
              )))
@@ -143,6 +143,7 @@ def promote_class(class_id):
 
 @bp.route("/subjects")
 @login_required
+@require_role("admin", "principal")
 def list_subjects():
     subjects = Subject.query.filter_by(school_id=g.school.id).order_by(Subject.subject_name).all()
     return render_template("subjects/list.html", subjects=subjects)
@@ -214,11 +215,10 @@ def assign_teacher(class_id):
 @require_role("admin", "principal")
 def delete_subject(subject_id):
     sub = Subject.query.filter_by(id=subject_id, school_id=g.school.id).first_or_404()
-    class_id = sub.class_id
     db.session.delete(sub)
     db.session.commit()
     flash("Subject and all related marks deleted.", "s")
-    return redirect(url_for("classes.class_detail", class_id=class_id))
+    return redirect(url_for("classes.list_subjects"))
 
 @bp.route("/class/<int:class_id>/students-csv")
 @login_required

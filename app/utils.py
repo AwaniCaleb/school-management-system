@@ -51,3 +51,29 @@ def is_subject_teacher(assignment_obj):
 
 def can_manage_class(class_obj):
     return is_admin() or is_form_teacher(class_obj)
+
+def generate_roll_no(student, class_obj):
+    if not class_obj:
+        return None
+    # Format: ClassSection-ID (zero padded)
+    # e.g. JSS1A-05
+    clean_name = "".join(class_obj.class_name.split())
+    clean_section = class_obj.section.strip()
+    return f"{clean_name}{clean_section}-{student.id:02d}"
+
+def calculate_grade(percentage):
+    # Load thresholds from g.settings
+    # Default: A>=70, B>=60, C>=50, D>=40
+    try:
+        a = float(g.settings.get('grade_a', 70))
+        b = float(g.settings.get('grade_b', 60))
+        c = float(g.settings.get('grade_c', 50))
+        d = float(g.settings.get('grade_d', 40))
+    except:
+        a, b, c, d = 70, 60, 50, 40
+
+    if percentage >= a: return 'A'
+    if percentage >= b: return 'B'
+    if percentage >= c: return 'C'
+    if percentage >= d: return 'D'
+    return 'F'

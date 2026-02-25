@@ -38,12 +38,13 @@ def create_app(test_config=None):
     app.register_blueprint(settings.bp)
     app.register_blueprint(student_portal.bp)
 
-    from app.utils import is_subject_teacher, can_manage_class
+    from app.utils import is_subject_teacher, can_manage_class, calculate_grade
     @app.context_processor
     def utility_processor():
         return dict(
             is_subject_teacher=is_subject_teacher,
-            can_manage_class=can_manage_class
+            can_manage_class=can_manage_class,
+            calculate_grade=calculate_grade
         )
 
     return app

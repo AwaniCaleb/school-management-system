@@ -91,7 +91,11 @@ def student_result(student_id):
     exam_id = request.args.get("exam_id")
 
     if not exam_id:
-        latest_exam = Exam.query.filter_by(class_id=stu.class_id, school_id=g.school.id).order_by(Exam.id.desc()).first()
+        latest_exam = Exam.query.filter_by(
+            class_id=stu.class_id,
+            school_id=g.school.id,
+            session_id=g.current_session.id
+        ).order_by(Exam.id.desc()).first()
         if not latest_exam:
             flash("No exams for this class.", "danger")
             return redirect(url_for("classes.class_detail", class_id=stu.class_id))
@@ -124,7 +128,11 @@ def class_results(class_id):
     exam_id = request.args.get("exam_id")
 
     if not exam_id:
-        latest_exam = Exam.query.filter_by(class_id=class_id, school_id=g.school.id).order_by(Exam.id.desc()).first()
+        latest_exam = Exam.query.filter_by(
+            class_id=class_id,
+            school_id=g.school.id,
+            session_id=g.current_session.id
+        ).order_by(Exam.id.desc()).first()
         if not latest_exam:
             flash("No exams defined for this class.", "danger")
             return redirect(url_for("classes.class_detail", class_id=class_id))

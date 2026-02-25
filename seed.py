@@ -137,6 +137,16 @@ def seed_db():
         db.session.add(exam)
         db.session.flush()
 
+        # Settings
+        settings = [
+            Setting(school_id=school1.id, key='school_name', value=school1.name),
+            Setting(school_id=school1.id, key='grade_a', value='70'),
+            Setting(school_id=school1.id, key='grade_b', value='60'),
+            Setting(school_id=school1.id, key='grade_c', value='50'),
+            Setting(school_id=school1.id, key='grade_d', value='40'),
+        ]
+        db.session.add_all(settings)
+
         # Marks
         for stu in jss1a.students:
             # Only subjects assigned to this class in this session

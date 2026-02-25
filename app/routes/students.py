@@ -8,7 +8,19 @@ bp = Blueprint('students', __name__)
 @bp.route("/students")
 @login_required
 def directory():
-    students = Student.query.filter_by(school_id=g.school.id).order_by(Student.name).all()
+    if g.user.role == 'teacher':
+        from app.models import SubjectTeacherAssignment
+        # Only students in classes assigned to this teacher in the current session
+        students = Student.query.join(Class).filter(
+            Student.school_id == g.school.id,
+            ((Class.form_teacher_id == g.user.id) |
+             (Class.subject_assignments.any(
+                 (SubjectTeacherAssignment.teacher_id == g.user.id) &
+                 (SubjectTeacherAssignment.session_id == g.current_session.id)
+             )))
+        ).distinct().order_by(Student.name).all()
+    else:
+        students = Student.query.filter_by(school_id=g.school.id).order_by(Student.name).all()
     return render_template("students/directory.html", students=students)
 
 @bp.route("/student/<int:student_id>")
@@ -47,21 +59,17 @@ def add_to_class(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
         student_id = request.form.get("student_id")
-        roll_no = request.form.get("roll_no")
 
-        if not student_id or not roll_no:
-            flash("Student and Roll Number are required.", "danger")
+        if not student_id:
+            flash("Student is required.", "danger")
         else:
+            from app.utils import generate_roll_no
             stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
-            existing = Student.query.filter_by(school_id=g.school.id, class_id=class_id, roll_no=roll_no).first()
-            if existing:
-                flash(f"Roll number {roll_no} already exists in this class!", "danger")
-            else:
-                stu.class_id = class_id
-                stu.roll_no = roll_no
-                db.session.commit()
-                flash(f"{stu.name} added to {cls.class_name}!", "s")
-                return redirect(url_for("classes.class_detail", class_id=class_id))
+            stu.class_id = class_id
+            stu.roll_no = generate_roll_no(stu, cls)
+            db.session.commit()
+            flash(f"{stu.name} added to {cls.class_name}-{cls.section} with Roll No: {stu.roll_no}", "s")
+            return redirect(url_for("classes.class_detail", class_id=class_id))
 
     available_students = Student.query.filter(
         Student.school_id == g.school.id,
