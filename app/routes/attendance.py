@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, g
+from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort
 from app.models import Class, Student, AttendanceSession, AttendanceRecord
-from app.utils import login_required
+from app.utils import login_required, can_manage_class
 from app.extensions import db
 from datetime import date
 
@@ -9,7 +9,10 @@ bp = Blueprint('attendance', __name__)
 @bp.route("/attendance/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def take_attendance(class_id):
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
+    if not can_manage_class(cls):
+        abort(403)
+
     date_str = request.args.get("date") or request.form.get("date") or date.today().isoformat()
 
     session_row = AttendanceSession.query.filter_by(class_id=class_id, date=date_str).first()

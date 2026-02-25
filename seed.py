@@ -1,6 +1,6 @@
 from app import create_app
 from app.extensions import db
-from app.models import User, Class, Subject, Student, Exam, FeeStructure, Setting, Mark, AttendanceSession, AttendanceRecord, FeePayment
+from app.models import School, Session, User, Class, Subject, Student, Exam, FeeStructure, Setting, Mark, AttendanceSession, AttendanceRecord, FeePayment
 from werkzeug.security import generate_password_hash
 from datetime import date, timedelta
 import random
@@ -8,160 +8,142 @@ import warnings
 from sqlalchemy.exc import SAWarning
 
 def seed_db():
-    # Suppress circular dependency warnings during drop_all
     warnings.filterwarnings("ignore", category=SAWarning, message="Can't sort tables for DROP")
     app = create_app()
     with app.app_context():
         # Drop all and create all for a fresh start
-        # Disabling foreign keys to avoid warnings about circular dependencies in SQLite
         db.session.execute(db.text("PRAGMA foreign_keys = OFF;"))
         db.drop_all()
         db.create_all()
         db.session.execute(db.text("PRAGMA foreign_keys = ON;"))
 
-        # 1. Add Administrative Hierarchy
-        users = [
-            User(username='admin', role='admin'),
-            User(username='principal', role='principal'),
-            User(username='vice_principal', role='vice_principal')
-        ]
-        for u in users:
-            u.set_password('admin123')
-            db.session.add(u)
+        # --- TENANT 1: LAGOS HERITAGE ---
+        school1 = School(
+            name='Lagos Heritage International School',
+            subdomain='lagos-heritage',
+            address='123 Herbert Macaulay Way, Yaba, Lagos',
+            contact_email='admin@lagosheritage.edu.ng'
+        )
+        db.session.add(school1)
+        db.session.flush()
 
-        # 2. Add Teachers
-        teacher_names = ['Mr. Adeyemi', 'Mrs. Balogun', 'Mr. Okonkwo', 'Ms. Chioma', 'Mr. Ibrahim', 'Mrs. Gbadamosi']
-        teachers = []
-        for i, name in enumerate(teacher_names):
-            username = name.lower().replace('.', '').replace(' ', '_')
-            t = User(username=username, role='teacher')
+        # Sessions for School 1
+        s1_sess_old = Session(name='2023/2024', is_current=False, school_id=school1.id)
+        s1_sess_cur = Session(name='2024/2025', is_current=True, school_id=school1.id)
+        db.session.add_all([s1_sess_old, s1_sess_cur])
+        db.session.flush()
+
+        # Users for School 1
+        s1_admin = User(username='admin', role='admin', school_id=school1.id)
+        s1_admin.set_password('admin123')
+        s1_principal = User(username='principal', role='principal', school_id=school1.id)
+        s1_principal.set_password('admin123')
+        db.session.add_all([s1_admin, s1_principal])
+
+        # Teachers for School 1
+        s1_teachers = []
+        for name in ['Mr. Adeyemi', 'Mrs. Balogun', 'Mr. Okonkwo']:
+            t = User(username=name.lower().replace(' ', '_').replace('.', ''), role='teacher', school_id=school1.id)
             t.set_password('teacher123')
             db.session.add(t)
-            teachers.append(t)
+            s1_teachers.append(t)
+        db.session.flush()
 
-        # Add default settings
-        db.session.add(Setting(key='school_name', value='Lagos Heritage International School'))
+        # Settings for School 1
+        db.session.add(Setting(school_id=school1.id, key='school_name', value=school1.name))
 
-        # 3. Add Nigerian Classes and Form Teachers
-        class_names = ['JSS 1', 'JSS 2', 'JSS 3', 'SS 1', 'SS 2', 'SS 3']
-        sections = ['A', 'B']
-        db_classes = []
-        teacher_idx = 0
-        for name in class_names:
-            for sec in sections:
-                c = Class(
-                    class_name=name,
-                    section=sec,
-                    form_teacher_id=teachers[teacher_idx % len(teachers)].id
-                )
-                db.session.add(c)
-                db_classes.append(c)
-                teacher_idx += 1
+        # --- TENANT 2: ABUJA ACADEMY ---
+        school2 = School(
+            name='Abuja Academy of Excellence',
+            subdomain='abuja-academy',
+            address='Maitama District, Abuja FCT',
+            contact_email='info@abujaacademy.edu.ng'
+        )
+        db.session.add(school2)
+        db.session.flush()
 
-        db.session.commit()
+        s2_sess_cur = Session(name='2024/2025', is_current=True, school_id=school2.id)
+        db.session.add(s2_sess_cur)
+        db.session.flush()
 
-        # 4. Nigerian Subjects and Subject Teachers
-        nigerian_subjects = ['Mathematics', 'English Language', 'Civic Education', 'Biology', 'Economics', 'Government', 'Physics', 'Chemistry', 'Agricultural Science', 'Literature-in-English']
+        s2_admin = User(username='admin', role='admin', school_id=school2.id)
+        s2_admin.set_password('admin123')
+        db.session.add(s2_admin)
+        db.session.add(Setting(school_id=school2.id, key='school_name', value=school2.name))
 
-        for c in db_classes:
-            selected_subs = random.sample(nigerian_subjects, 6)
-            for s_name in selected_subs:
-                # Assign a random teacher to each subject
-                sub = Subject(
-                    subject_name=s_name,
-                    class_id=c.id,
-                    teacher_id=random.choice(teachers).id
-                )
-                db.session.add(sub)
-
-        db.session.commit()
-
-        # 5. Nigerian Students and Student Logins
+        # --- DATA GENERATION HELPER ---
         first_names_m = ['Olumide', 'Emeka', 'Tunde', 'Abubakar', 'Chinedu', 'Adebayo', 'Femi', 'Musa', 'Ibrahim', 'Oche']
         first_names_f = ['Chioma', 'Adesua', 'Fatima', 'Ngozi', 'Zainab', 'Funke', 'Ifunanya', 'Bisi', 'Oluwaseun', 'Amaka']
         last_names = ['Okonkwo', 'Adeyemi', 'Balogun', 'Bello', 'Eze', 'Danladi', 'Ojo', 'Nwosu', 'Gbadamosi', 'Okafor']
-        states = ['Lagos', 'Oyo', 'Kano', 'Enugu', 'Rivers', 'Kaduna', 'Abuja FCT', 'Ogun', 'Edo', 'Delta']
-        religions = ['Christianity', 'Islam', 'Other']
-        blood_groups = ['A+', 'B+', 'O+', 'AB+', 'O-']
+        subjects_list = ['Mathematics', 'English Language', 'Biology', 'Civic Education', 'Economics']
 
-        for c in db_classes:
-            for i in range(10, 14): # 4 students per class for brevity
-                gender = random.choice(['Male', 'Female'])
-                f_name = random.choice(first_names_m if gender == 'Male' else first_names_f)
-                l_name = random.choice(last_names)
-                s = Student(
-                    name=f"{f_name} {l_name}",
-                    roll_no=f"{c.class_name.replace(' ', '')}{c.section}{i}",
+        # Populate School 1
+        class_names = ['JSS 1', 'JSS 2', 'JSS 3', 'SS 1', 'SS 2', 'SS 3']
+        for c_name in class_names:
+            for sec in ['A', 'B']:
+                c = Class(
+                    school_id=school1.id,
+                    session_id=s1_sess_cur.id,
+                    class_name=c_name,
+                    section=sec,
+                    form_teacher_id=random.choice(s1_teachers).id
+                )
+                db.session.add(c)
+                db.session.flush()
+
+                # Add subjects
+                for sub_name in subjects_list:
+                    sub = Subject(
+                        school_id=school1.id,
+                        class_id=c.id,
+                        subject_name=sub_name,
+                        teacher_id=random.choice(s1_teachers).id
+                    )
+                    db.session.add(sub)
+
+                # Add students
+                for i in range(1, 5):
+                    gender = random.choice(['Male', 'Female'])
+                    f_name = random.choice(first_names_m if gender == 'Male' else first_names_f)
+                    l_name = random.choice(last_names)
+                    stu = Student(
+                        school_id=school1.id,
+                        class_id=c.id,
+                        name=f"{f_name} {l_name}",
+                        roll_no=f"{c.class_name.replace(' ', '')}{c.section}0{i}",
+                        gender=gender,
+                        dob='2010-05-15',
+                        guardian_name=f"Mr. {l_name}",
+                        status='Active'
+                    )
+                    db.session.add(stu)
+                    db.session.flush()
+
+                    # Student User
+                    stu_user = User(
+                        school_id=school1.id,
+                        username=stu.roll_no.lower(),
+                        role='student',
+                        student_id=stu.id
+                    )
+                    stu_user.set_password('student123')
+                    db.session.add(stu_user)
+
+                # Add an Exam for this class
+                exam = Exam(
+                    school_id=school1.id,
                     class_id=c.id,
-                    gender=gender,
-                    dob=(date.today() - timedelta(days=random.randint(4000, 6000))).isoformat(),
-                    blood_group=random.choice(blood_groups),
-                    religion=random.choice(religions),
-                    state_of_origin=random.choice(states),
-                    guardian_name=f"{random.choice(last_names)} {random.choice(first_names_m)}",
-                    guardian_phone=f"080{random.randint(10000000, 99999999)}",
-                    contact_no=f"081{random.randint(10000000, 99999999)}",
-                    address=f"{random.randint(1, 100)} Herbert Macaulay Way, Yaba, Lagos",
-                    medical_notes=random.choice(['None', 'Allergic to Peanuts', 'Asthmatic', 'None'])
+                    name='First Term Exam',
+                    exam_type='Final',
+                    weight=1.0
                 )
-                db.session.add(s)
-                db.session.flush() # To get student.id
-
-                # Create student user account
-                stu_user = User(
-                    username=s.roll_no.lower(),
-                    role='student',
-                    student_id=s.id
-                )
-                stu_user.set_password('student123')
-                db.session.add(stu_user)
+                db.session.add(exam)
 
         db.session.commit()
-
-        # 6. Exams and Marks for JSS 1A
-        jss1a = Class.query.filter_by(class_name='JSS 1', section='A').first()
-        exam = Exam(name='First Term Examination', exam_type='Theory', weight=1.0, class_id=jss1a.id)
-        db.session.add(exam)
-        db.session.commit()
-
-        for s in jss1a.students:
-            for sub in jss1a.subjects:
-                mark = Mark(
-                    student_id=s.id,
-                    subject_id=sub.id,
-                    exam_id=exam.id,
-                    marks_obtained=random.randint(45, 98)
-                )
-                db.session.add(mark)
-
-        # 7. Attendance and Fees
-        for c in db_classes:
-            # Create a session for today
-            sess = AttendanceSession(class_id=c.id, date=date.today().isoformat())
-            db.session.add(sess)
-            db.session.commit()
-            for s in c.students:
-                rec = AttendanceRecord(session_id=sess.id, student_id=s.id, status='P')
-                db.session.add(rec)
-
-            # Fees
-            f1 = FeeStructure(name='Tuition Fee', amount=50000.0, due_date='2025-09-01', class_id=c.id)
-            db.session.add(f1)
-            db.session.commit()
-
-            # Record some payments
-            for s in c.students[:2]:
-                pay = FeePayment(
-                    student_id=s.id,
-                    fee_id=f1.id,
-                    paid_amount=50000.0,
-                    paid_on=date.today().isoformat(),
-                    mode='Direct Deposit'
-                )
-                db.session.add(pay)
-
-        db.session.commit()
-        print("Professional Role-Based Database Seeded Successfully!")
+        print("SaaS Role-Based Nigerian Database Seeded Successfully!")
+        print(f"School 1: {school1.name} (Subdomain: {school1.subdomain})")
+        print(f"School 2: {school2.name} (Subdomain: {school2.subdomain})")
+        print("Default Login: admin / admin123")
 
 if __name__ == "__main__":
     seed_db()

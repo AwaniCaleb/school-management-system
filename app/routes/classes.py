@@ -9,28 +9,29 @@ bp = Blueprint('classes', __name__)
 @login_required
 def list_classes():
     if g.user.role == 'teacher':
-        # Show classes where they are form teacher OR teach a subject
         classes = Class.query.filter(
-            (Class.form_teacher_id == g.user.id) |
-            (Class.subjects.any(Subject.teacher_id == g.user.id))
+            Class.school_id == g.school.id,
+            Class.session_id == g.current_session.id,
+            ((Class.form_teacher_id == g.user.id) |
+             (Class.subjects.any(Subject.teacher_id == g.user.id)))
         ).order_by(Class.class_name, Class.section).all()
     elif g.user.role == 'student':
-        # Students only see their own class if assigned
         if g.user.student_id:
-            from app.models import Student
             stu = Student.query.get(g.user.student_id)
-            classes = [stu.student_class] if stu.student_class else []
+            classes = [stu.student_class] if stu.student_class and stu.student_class.session_id == g.current_session.id else []
         else:
             classes = []
     else:
-        # Admin, Principal, Vice Principal see all
-        classes = Class.query.order_by(Class.class_name, Class.section).all()
+        classes = Class.query.filter_by(
+            school_id=g.school.id,
+            session_id=g.current_session.id
+        ).order_by(Class.class_name, Class.section).all()
 
     return render_template("classes/list.html", classes=classes)
 
-@bp.route("/add_class", methods=["GET", "POST"])
+@bp.route("/add-class", methods=["GET", "POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def add_class():
     if request.method == "POST":
         name = request.form["class_name"].strip()
@@ -38,11 +39,21 @@ def add_class():
         if not name or not section:
             flash("Class name and section are required.", "danger")
         else:
-            existing = Class.query.filter_by(class_name=name, section=section).first()
+            existing = Class.query.filter_by(
+                school_id=g.school.id,
+                session_id=g.current_session.id,
+                class_name=name,
+                section=section
+            ).first()
             if existing:
-                flash("Class with this name and section already exists!", "danger")
+                flash("Class already exists for this session!", "danger")
             else:
-                new_class = Class(class_name=name, section=section)
+                new_class = Class(
+                    school_id=g.school.id,
+                    session_id=g.current_session.id,
+                    class_name=name,
+                    section=section
+                )
                 db.session.add(new_class)
                 db.session.commit()
                 flash(f"Class {name}-{section} added!", "s")
@@ -53,7 +64,7 @@ def add_class():
 @bp.route("/class/<int:class_id>")
 @login_required
 def class_detail(class_id):
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if not can_manage_class(cls) and not any(s.teacher_id == g.user.id for s in cls.subjects):
         if g.user.role != 'student' or (g.user.student_id and Student.query.get(g.user.student_id).class_id != class_id):
             abort(403)
@@ -64,8 +75,8 @@ def class_detail(class_id):
 @login_required
 @require_role("admin", "principal")
 def edit_class(class_id):
-    cls = Class.query.get_or_404(class_id)
-    teachers = User.query.filter_by(role='teacher').all()
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
+    teachers = User.query.filter_by(school_id=g.school.id, role='teacher').all()
 
     if request.method == "POST":
         cls.class_name = request.form["class_name"].strip()
@@ -85,20 +96,21 @@ def edit_class(class_id):
 
 @bp.route("/class/<int:class_id>/delete", methods=["POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def delete_class(class_id):
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     db.session.delete(cls)
     db.session.commit()
     flash("Class and all related data deleted.", "s")
     return redirect(url_for("classes.list_classes"))
 
-@bp.route("/promote/<int:class_id>", methods=["GET", "POST"])
+@bp.route("/promote-class/<int:class_id>", methods=["GET", "POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def promote_class(class_id):
-    source = Class.query.get_or_404(class_id)
-    target_classes = Class.query.filter(Class.id != class_id).all()
+    source = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
+    # Can promote to classes in next sessions ideally, but for now allow any class in school
+    target_classes = Class.query.filter(Class.school_id == g.school.id, Class.id != class_id).all()
 
     if request.method == "POST":
         target_id = request.form.get("target_class")
@@ -108,15 +120,12 @@ def promote_class(class_id):
         else:
             target_class = Class.query.get(target_id)
             for stu in source.students:
-                # Check if student already in target
-                existing = Student.query.filter_by(class_id=target_id, roll_no=stu.roll_no).first()
+                # Update roll no and class for target
+                existing = Student.query.filter_by(school_id=g.school.id, class_id=target_id, roll_no=stu.roll_no).first()
                 if not existing:
-                    new_stu = Student(name=stu.name, roll_no=stu.roll_no, class_id=target_id)
-                    db.session.add(new_stu)
-
-            if move:
-                for stu in list(source.students):
-                    db.session.delete(stu)
+                    # In a real system, we'd probably create a new enrollment record
+                    # Here we update the student's current class
+                    stu.class_id = target_id
 
             db.session.commit()
             flash("Promotion completed.", "s")
@@ -124,17 +133,17 @@ def promote_class(class_id):
 
     return render_template("classes/promote.html", source=source, target_classes=target_classes)
 
-@bp.route("/add_subject/<int:class_id>", methods=["GET", "POST"])
+@bp.route("/add-subject/<int:class_id>", methods=["GET", "POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def add_subject(class_id):
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
         sub_name = request.form["subject"].strip()
         if not sub_name:
             flash("Subject name is required.", "danger")
         else:
-            new_sub = Subject(subject_name=sub_name, class_id=class_id)
+            new_sub = Subject(subject_name=sub_name, class_id=class_id, school_id=g.school.id)
             db.session.add(new_sub)
             db.session.commit()
             flash("Subject added!", "s")
@@ -146,8 +155,8 @@ def add_subject(class_id):
 @login_required
 @require_role("admin", "principal")
 def edit_subject(subject_id):
-    sub = Subject.query.get_or_404(subject_id)
-    teachers = User.query.filter_by(role='teacher').all()
+    sub = Subject.query.filter_by(id=subject_id, school_id=g.school.id).first_or_404()
+    teachers = User.query.filter_by(school_id=g.school.id, role='teacher').all()
 
     if request.method == "POST":
         sub.subject_name = request.form["subject"].strip()
@@ -161,22 +170,22 @@ def edit_subject(subject_id):
 
 @bp.route("/subject/<int:subject_id>/delete", methods=["POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def delete_subject(subject_id):
-    sub = Subject.query.get_or_404(subject_id)
+    sub = Subject.query.filter_by(id=subject_id, school_id=g.school.id).first_or_404()
     class_id = sub.class_id
     db.session.delete(sub)
     db.session.commit()
     flash("Subject and all related marks deleted.", "s")
     return redirect(url_for("classes.class_detail", class_id=class_id))
 
-@bp.route("/class/<int:class_id>/students/csv")
+@bp.route("/class/<int:class_id>/students-csv")
 @login_required
 def export_students_csv(class_id):
     import io
     import csv
     from flask import Response
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
 
     output = io.StringIO()
     writer = csv.writer(output)

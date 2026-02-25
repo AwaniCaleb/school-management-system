@@ -8,9 +8,13 @@ bp = Blueprint('main', __name__)
 @bp.route("/")
 @login_required
 def home():
-    class_count = Class.query.count()
-    student_count = Student.query.count()
-    exam_count = Exam.query.count()
+    if g.user.role == 'student':
+        return redirect(url_for('student_portal.dashboard'))
+
+    class_count = Class.query.filter_by(school_id=g.school.id, session_id=g.current_session.id).count()
+    student_count = Student.query.filter_by(school_id=g.school.id).count()
+    exam_count = Exam.query.filter_by(school_id=g.school.id).count()
+
     return render_template("main/home.html",
                            class_count=class_count,
                            student_count=student_count,
@@ -26,6 +30,7 @@ def search():
 
     like = f"%{q}%"
     results = Student.query.filter(
+        Student.school_id == g.school.id,
         (Student.name.like(like)) | (Student.roll_no.like(like))
     ).all()
 

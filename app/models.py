@@ -2,13 +2,48 @@ from app.extensions import db
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
+class School(db.Model):
+    __tablename__ = 'schools'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    subdomain = db.Column(db.String(50), unique=True)
+    logo_url = db.Column(db.String(255))
+    address = db.Column(db.String(255))
+    contact_email = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    sessions = db.relationship('Session', backref='school', cascade="all, delete-orphan", lazy=True)
+    users = db.relationship('User', backref='school', cascade="all, delete-orphan", lazy=True)
+    students = db.relationship('Student', backref='school', cascade="all, delete-orphan", lazy=True)
+    classes = db.relationship('Class', backref='school', cascade="all, delete-orphan", lazy=True)
+    subjects = db.relationship('Subject', backref='school', cascade="all, delete-orphan", lazy=True)
+    exams = db.relationship('Exam', backref='school', cascade="all, delete-orphan", lazy=True)
+    fee_structures = db.relationship('FeeStructure', backref='school', cascade="all, delete-orphan", lazy=True)
+    audit_logs = db.relationship('AuditLog', backref='school', cascade="all, delete-orphan", lazy=True)
+    settings = db.relationship('Setting', backref='school', cascade="all, delete-orphan", lazy=True)
+
+class Session(db.Model):
+    __tablename__ = 'sessions'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    name = db.Column(db.String(50), nullable=False) # e.g. "2024/2025"
+    is_current = db.Column(db.Boolean, default=False)
+    start_date = db.Column(db.String(10))
+    end_date = db.Column(db.String(10))
+
+    classes = db.relationship('Class', backref='session', cascade="all, delete-orphan", lazy=True)
+    fee_structures = db.relationship('FeeStructure', backref='session', cascade="all, delete-orphan", lazy=True)
+
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    username = db.Column(db.String(80), nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False) # 'admin', 'principal', 'vice_principal', 'teacher', 'student'
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='SET NULL'))
+
+    __table_args__ = (db.UniqueConstraint('school_id', 'username', name='_school_username_uc'),)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -19,32 +54,36 @@ class User(db.Model):
 class Class(db.Model):
     __tablename__ = 'classes'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
     class_name = db.Column(db.String(50), nullable=False)
     section = db.Column(db.String(10), nullable=False)
     form_teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
-    __table_args__ = (db.UniqueConstraint('class_name', 'section', name='_class_section_uc'),)
 
-    form_teacher = db.relationship('User', foreign_keys=[form_teacher_id], backref='assigned_class')
-    students = db.relationship('Student', foreign_keys='Student.class_id', backref='student_class', cascade="all, delete-orphan", lazy=True)
+    __table_args__ = (db.UniqueConstraint('session_id', 'class_name', 'section', name='_session_class_section_uc'),)
+
+    form_teacher = db.relationship('User', foreign_keys=[form_teacher_id], backref='assigned_classes')
+    students = db.relationship('Student', foreign_keys='Student.class_id', backref='student_class', lazy=True)
     subjects = db.relationship('Subject', backref='subject_class', cascade="all, delete-orphan", lazy=True)
     exams = db.relationship('Exam', backref='exam_class', cascade="all, delete-orphan", lazy=True)
     attendance_sessions = db.relationship('AttendanceSession', backref='session_class', cascade="all, delete-orphan", lazy=True)
-    fee_structures = db.relationship('FeeStructure', backref='fee_class', cascade="all, delete-orphan", lazy=True)
 
 class Subject(db.Model):
     __tablename__ = 'subjects'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     subject_name = db.Column(db.String(100), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
 
-    teacher = db.relationship('User', backref='taught_subjects')
+    teacher = db.relationship('User', foreign_keys=[teacher_id], backref='taught_subjects')
 
 class Student(db.Model):
     __tablename__ = 'students'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    roll_no = db.Column(db.String(20)) # Made optional for general directory
+    roll_no = db.Column(db.String(20))
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='SET NULL'))
 
     # Expanded Information
@@ -68,6 +107,7 @@ class Student(db.Model):
 class Exam(db.Model):
     __tablename__ = 'exams'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     exam_type = db.Column(db.String(50))
@@ -102,6 +142,8 @@ class AttendanceRecord(db.Model):
 class FeeStructure(db.Model):
     __tablename__ = 'fee_structures'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id', ondelete='CASCADE'), nullable=False)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Float, nullable=False)
@@ -120,12 +162,14 @@ class FeePayment(db.Model):
 
 class Setting(db.Model):
     __tablename__ = 'settings'
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), primary_key=True)
     key = db.Column(db.String(50), primary_key=True)
     value = db.Column(db.String(255))
 
 class AuditLog(db.Model):
     __tablename__ = 'audit_logs'
     id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     action = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)

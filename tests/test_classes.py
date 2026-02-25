@@ -2,7 +2,7 @@ from app.models import Class
 
 def test_add_class(client, auth, app):
     auth.login()
-    response = client.post('/add_class', data={
+    response = client.post('/add-class', data={
         'class_name': 'Test Class',
         'section': 'T'
     }, follow_redirects=True)

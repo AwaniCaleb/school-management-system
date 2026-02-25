@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort
-from app.models import Class, Student, FeeStructure, FeePayment
+from app.models import Class, Student, FeeStructure, FeePayment, Subject
 from app.utils import login_required, require_role
 from app.extensions import db
 from datetime import date
@@ -10,21 +10,25 @@ bp = Blueprint('fees', __name__)
 @login_required
 def dashboard():
     if g.user.role == 'teacher':
-        # Teachers see fees for their class
         classes = Class.query.filter(
-            (Class.form_teacher_id == g.user.id) |
-            (Class.subjects.any(Subject.teacher_id == g.user.id))
+            Class.school_id == g.school.id,
+            Class.session_id == g.current_session.id,
+            ((Class.form_teacher_id == g.user.id) |
+             (Class.subjects.any(Subject.teacher_id == g.user.id)))
         ).all()
     elif g.user.role == 'student':
         return redirect(url_for('student_portal.dashboard'))
     else:
-        classes = Class.query.all()
+        classes = Class.query.filter_by(
+            school_id=g.school.id,
+            session_id=g.current_session.id
+        ).all()
     return render_template("fees/dashboard.html", classes=classes)
 
 @bp.route("/fees/class/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def class_fees(class_id):
-    cls = Class.query.get_or_404(class_id)
+    cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if request.method == "POST" and g.user.role in ['admin', 'principal', 'vice_principal']:
         name = request.form["name"].strip()
         try:
@@ -36,17 +40,27 @@ def class_fees(class_id):
         if not name or amount <= 0:
             flash("Valid fee name and amount required.", "danger")
         else:
-            new_fee = FeeStructure(name=name, amount=amount, due_date=due_date or None, class_id=class_id)
+            new_fee = FeeStructure(
+                name=name,
+                amount=amount,
+                due_date=due_date or None,
+                class_id=class_id,
+                school_id=g.school.id,
+                session_id=g.current_session.id
+            )
             db.session.add(new_fee)
             db.session.commit()
             flash("Fee item added.", "s")
             return redirect(url_for("fees.class_fees", class_id=class_id))
 
-    # Calculate summaries
     fee_totals = sum(f.amount for f in cls.fee_structures)
     student_summaries = []
     for s in cls.students:
-        paid = db.session.query(db.func.sum(FeePayment.paid_amount)).join(FeeStructure).filter(FeePayment.student_id == s.id, FeeStructure.class_id == class_id).scalar() or 0.0
+        paid = db.session.query(db.func.sum(FeePayment.paid_amount)).join(FeeStructure).filter(
+            FeePayment.student_id == s.id,
+            FeeStructure.class_id == class_id,
+            FeeStructure.session_id == g.current_session.id
+        ).scalar() or 0.0
         student_summaries.append({'student': s, 'paid': paid, 'balance': fee_totals - paid})
 
     return render_template("fees/class_fees.html", cls=cls, fee_totals=fee_totals, student_summaries=student_summaries)
@@ -54,7 +68,7 @@ def class_fees(class_id):
 @bp.route("/fees/student/<int:student_id>", methods=["GET", "POST"])
 @login_required
 def student_fees(student_id):
-    stu = Student.query.get_or_404(student_id)
+    stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
         fee_id = int(request.form["fee_id"])
         try:
@@ -72,7 +86,7 @@ def student_fees(student_id):
             flash("Payment recorded.", "s")
             return redirect(url_for("fees.student_fees", student_id=student_id))
 
-    total_due = sum(f.amount for f in stu.student_class.fee_structures)
+    total_due = sum(f.amount for f in stu.student_class.fee_structures) if stu.student_class else 0
     total_paid = sum(p.paid_amount for p in stu.fee_payments)
 
     return render_template("fees/student_fees.html", stu=stu, total_due=total_due, total_paid=total_paid, balance=total_due - total_paid)

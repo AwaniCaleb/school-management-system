@@ -28,9 +28,11 @@ def log_action(action):
     from app.extensions import db
     from flask import g
     user_id = g.user.id if g.user else None
-    log = AuditLog(user_id=user_id, action=action)
-    db.session.add(log)
-    db.session.commit()
+    school_id = g.school.id if g.school else None
+    if school_id:
+        log = AuditLog(user_id=user_id, school_id=school_id, action=action)
+        db.session.add(log)
+        db.session.commit()
 
 def is_admin():
     return g.user and g.user.role in ['admin', 'principal']

@@ -1,31 +1,36 @@
 # User Manual
 
-## 1. Getting Started
+## 1. Getting Started as a Tenant
+This platform is a SaaS application. Each school operates independently.
 
-### Roles and Access Levels
-- **Admin**: Full control over everything.
-- **Principal**: Management of classes, students, fees, and system logs.
-- **Vice Principal**: Academic oversight and student record management.
-- **Form Teacher**: Manages a specific class (e.g., JSS 1A). Can take attendance and view all results for that class.
-- **Subject Teacher**: Assigned to teach a subject (e.g., Mathematics). Can enter marks for that subject in their assigned classes.
-- **Student**: Can log in to view their own profile, attendance, and result cards.
+### Domain Access
+- In production, your school will have its own subdomain: `your-school.erp-platform.com`.
+- For development, the system identifies the first available school if no subdomain is provided.
 
-## 2. Admin/Principal Dashboard
-The dashboard provides a high-level overview of the school's status. The "System Analytics" chart shows average performance across all classes.
+### Default Login
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | `admin` | `admin123` |
 
-## 3. Class & Student Management
-- **Manage Classes**: Admins can assign **Form Teachers** to classes.
-- **Manage Subjects**: Admins can assign **Subject Teachers** to specific subjects.
-- **Enrollment**: Students can be enrolled globally and then added to specific classes with a roll number.
-- **Student Profile**: Holds detailed information including medical notes and guardian details.
+## 2. Academic Sessions
+The system is session-aware. At the start of a new academic year:
+1.  Go to **Settings**.
+2.  Add a new **Session** (e.g., 2025/2026).
+3.  Click **Set Current** to make it the active session for your school.
 
-## 4. Academic Management
-- **Marks Entry**: Subject Teachers see an input sheet ONLY for their assigned subjects. Admins and Form Teachers can see all marks.
-- **Result Cards**: Automatically generated and printable. Students can access their own via the Student Portal.
+## 3. Class Management (List View)
+Classes are displayed in a consolidated list for easier navigation in large schools.
+- **Assign Form Teacher**: Use the **Edit** button on a class to assign a teacher responsible for the entire class.
+- **Assign Subject Teacher**: Use the **Edit** button on a subject to assign a teacher for that specific course.
 
-## 5. Fees & Attendance
-- **Attendance**: Restricted to Form Teachers and Admins.
-- **Fees**: Admins and Principals can manage class fee structures and record student payments.
+## 4. Student Portals
+Students can log in using their **Roll Number** (case-insensitive) and the default password `student123`.
+- They can view their **Academic Progress** for the current and past sessions.
+- They can monitor their **Outstanding Balance** for school fees.
 
-## 6. Student Portal
-Students use their **Roll Number** (lowercase) as their username to log in. They have a personalized dashboard showing their academic standing and outstanding fees.
+## 5. Teacher Roles
+- **Form Teachers**: Have full visibility into their assigned class, including attendance and all subject results.
+- **Subject Teachers**: When they enter the **Marks Entry** sheet, they only have permission to edit scores for the subjects they teach.
+
+## 6. Audit Logs
+Administrators and Principals can monitor all sensitive actions (Logins, Mark changes, Student updates) via the **Audit Logs** in the Settings panel.

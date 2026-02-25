@@ -120,7 +120,7 @@
                                 <td>
                                     <a href="{{ url_for('exams.student_result', student_id=s.id) }}" class="btn btn-sm btn-outline-info">Result</a>
                                     <a href="{{ url_for('fees.student_fees', student_id=s.id) }}" class="btn btn-sm btn-outline-primary">Fees</a>
-                                    {% if g.user.role == 'admin' %}
+                                    {% if g.user.role in ['admin', 'principal', 'vice_principal'] %}
                                     <a href="{{ url_for('students.edit_student', student_id=s.id) }}" class="btn btn-sm btn-link text-warning"><i class="fas fa-edit"></i></a>
                                     {% endif %}
                                 </td>

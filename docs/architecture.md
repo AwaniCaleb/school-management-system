@@ -1,40 +1,33 @@
 # Architectural Overview
 
-The School ERP system is built using a modular Flask architecture, following industry best practices for scalability and maintainability.
+The School ERP system is built using a professional **Multi-Tenant (SaaS)** Flask architecture, following industry best practices for scalability and data isolation.
 
-## Design Patterns
+## Core Architectural Concepts
 
-### 1. Application Factory Pattern
-Instead of a global `app` object, we use `create_app()` in `app/__init__.py`. This allows for multiple instances of the app (e.g., for testing) and cleaner configuration management.
+### 1. Multi-Tenancy (SaaS)
+The application is designed to host multiple schools independently. Each school is a separate "tenant" in the database.
+- **Data Isolation**: Almost all entities (`User`, `Class`, `Student`, etc.) are linked to a `School` via a `school_id`.
+- **Subdomain Routing**: The application identifies the tenant based on the request's subdomain. For example, `lagos-heritage.schoolerp.com` maps to the "Lagos Heritage" tenant.
+- **Shared Infrastructure**: All tenants share the same codebase and database infrastructure, allowing for easier maintenance and updates.
 
-### 2. Blueprints
-The application logic is divided into specialized modules using Flask Blueprints:
-- **Auth**: User session management and Audit Logging.
-- **Main**: Dashboard and search functionality.
-- **Classes**: Class, subject, and promotion management.
-- **Students**: Student profile management with expanded fields.
-- **Student Portal**: Dedicated read-only access for student accounts.
-- **Exams**: Exam scheduling and bulk marks entry.
-- **Fees**: Fee structure and payment tracking.
-- **Attendance**: Daily attendance recording.
-- **API**: JSON endpoints for frontend analytics.
-- **Settings**: System-wide configuration and log viewing.
+### 2. Academic Sessions (Year-Based Logic)
+Recognizing that academic records are cyclical, the system uses a `Session` model.
+- **Dynamic Context**: Data like classes, exams, and attendance are tied to a specific academic session (e.g., "2024/2025").
+- **Current Session**: Each school has an active session. Users see data for the current session by default but can switch context when necessary.
 
-### 3. Object-Relational Mapping (ORM)
-We use **Flask-SQLAlchemy** to interface with the SQLite database. This abstracts raw SQL queries into Python objects, improving security and code readability.
+### 3. Application Factory & Blueprints
+- **Modular Design**: divided into specialized modules (`auth`, `classes`, `student_portal`, etc.) using Flask Blueprints.
+- **Context Injection**: `g.school` and `g.current_session` are automatically injected into every request context to ensure queries are strictly scoped to the current tenant.
 
-### 4. Granular Permissions & Roles
-The system implements a sophisticated hierarchical permission model:
-- **Admin**: Full system access, including technical configuration.
-- **Principal**: High-level management, log viewing, and fee management.
-- **Vice Principal**: Academic and student record management.
-- **Form Teacher**: Full management rights for their specific assigned class (Attendance, Results verification).
-- **Subject Teacher**: Edit access restricted only to the subjects they teach.
-- **Student**: Read-only access to their own profile, results, and fee status.
+### 4. Hierarchical RBAC (Role-Based Access Control)
+The system implements a deep hierarchy:
+- **Principal/Admin**: Full oversight.
+- **Form Teacher**: Management of a specific subclass.
+- **Subject Teacher**: Subject-specific marks management.
+- **Student**: Access to personal records.
 
 ## Technology Stack
 - **Backend**: Python 3.12, Flask 3.1
-- **Database**: SQLite (SQLAlchemy)
-- **Frontend**: Jinja2, Bootstrap 5, Chart.js, FontAwesome
-- **Testing**: Pytest
-- **Production**: Gunicorn
+- **ORM**: Flask-SQLAlchemy (with PRAGMA foreign_keys for SQLite)
+- **Frontend**: Jinja2, Bootstrap 5, Chart.js
+- **Testing**: Pytest-Flask

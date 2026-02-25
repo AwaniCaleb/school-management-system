@@ -9,16 +9,16 @@ bp = Blueprint('api', __name__, url_prefix='/api')
 @login_required
 def get_stats():
     return jsonify({
-        'classes': Class.query.count(),
-        'students': Student.query.count(),
-        'exams': Exam.query.count()
+        'classes': Class.query.filter_by(school_id=g.school.id, session_id=g.current_session.id).count(),
+        'students': Student.query.filter_by(school_id=g.school.id).count(),
+        'exams': Exam.query.filter_by(school_id=g.school.id).join(Class).filter(Class.session_id == g.current_session.id).count()
     })
 
 @bp.route('/class/<int:class_id>/performance')
 @login_required
 def class_performance(class_id):
     # Get average marks per exam for this class
-    exams = Exam.query.filter_by(class_id=class_id).all()
+    exams = Exam.query.filter_by(class_id=class_id, school_id=g.school.id).all()
     data = []
     for e in exams:
         avg = db.session.query(db.func.avg(Mark.marks_obtained)).filter_by(exam_id=e.id).scalar() or 0
@@ -28,8 +28,8 @@ def class_performance(class_id):
 @bp.route('/overall-performance')
 @login_required
 def overall_performance():
-    # Average marks per class
-    classes = Class.query.all()
+    # Average marks per class for current session
+    classes = Class.query.filter_by(school_id=g.school.id, session_id=g.current_session.id).all()
     data = []
     for c in classes:
         avg = db.session.query(db.func.avg(Mark.marks_obtained)).join(Subject).filter(Subject.class_id == c.id).scalar() or 0
