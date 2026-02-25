@@ -12,8 +12,11 @@ def load_logged_in_user():
     else:
         g.user = User.query.get(user_id)
 
-    # Load global settings
-    g.settings = {s.key: s.value for s in Setting.query.all()}
+    # Load global settings safely
+    try:
+        g.settings = {s.key: s.value for s in Setting.query.all()}
+    except Exception:
+        g.settings = {}
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
