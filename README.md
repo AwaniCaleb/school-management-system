@@ -1,64 +1,77 @@
-# 🎓 Professional School ERP System (FYP Edition)
+# 🎓 Professional School ERP System (FYP)
 
-A modular, professional School ERP application built with Flask and SQLAlchemy. Designed as a Final Year Project for Computer Science students.
+A comprehensive, modular School Enterprise Resource Planning (ERP) application built with **Flask** and **SQLAlchemy**. This project was designed and developed as a **Computer Science Final Year Project** to meet professional standards of software engineering, security, and documentation.
+
+---
+
+## 👥 Authors
+- **Afedia Glory**
+- **Awani Caleb**
 
 ---
 
 ## ✨ Features
 
-- **Modular Architecture**: Uses Flask Blueprints for clean code separation.
+- **Modular Architecture**: Built using Flask Blueprints and the Application Factory pattern for scalability and maintainability.
 - **ORM Integration**: Powered by SQLAlchemy for secure and efficient database management.
-- **Dynamic Dashboard**: Interactive analytics powered by Chart.js and RESTful APIs.
-- **Full School Cycle**:
-  - Class & Student Management
-  - Bulk Marks Entry & Individual Result Cards
-  - Attendance Tracking
-  - Fee Structure & Payment History
-- **Professional UI**: Responsive design with a sidebar layout built on Bootstrap 5.
-- **Testing Suite**: Comprehensive unit tests using Pytest.
-- **Documentation**: Detailed ER diagrams, architectural overviews, and user manuals.
-- **Security & Logging**: Audit logs for user actions and role-based access control.
+- **Dynamic Dashboard**: Interactive system analytics with real-time charts (Chart.js) and RESTful API endpoints.
+- **Nigerian Academic Context**: Pre-configured for Nigerian secondary school structures (JSS/SS).
+- **Core Modules**:
+  - **Class & Student Management**: Handle enrollments, profiles, and class promotions.
+  - **Academic Records**: Bulk marks entry, weighted exam scoring, and automated result card generation.
+  - **Attendance Tracking**: Daily attendance recording with an intuitive interface.
+  - **Financial Management**: Fee structure definition and student payment history tracking.
+  - **Security & Accountability**: Role-based access control (Admin/Teacher) and comprehensive System Audit Logs.
+- **Professional UI**: Responsive, sidebar-based layout built on Bootstrap 5.
+- **Exporting**: Download student lists and results in CSV format; printable result cards.
 
 ---
 
 ## 🧭 Quick Start
 
-### 1. Installation
+### 1. Prerequisites
+- Python 3.10+
+- Pip
+
+### 2. Installation
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Database Setup (MANDATORY)
-Initialize and seed the database with sample data. This creates the required tables and default accounts.
+### 3. Database Setup (MANDATORY)
+Initialize and seed the database with professional Nigerian sample data:
 ```bash
 python seed.py
 ```
 
-### 3. Run the App
+### 4. Run the Application
 ```bash
 python run.py
 ```
-Open http://127.0.0.1:5000 in your browser.
+Access the system at: http://127.0.0.1:5000
 
 ---
 
 ## 🔑 Default Credentials
 
-- **Admin**: `admin` / `admin123`
-- **Teacher**: `teacher` / `teacher123`
+| Role    | Username  | Password   |
+|---------|-----------|------------|
+| Admin   | `admin`   | `admin123` |
+| Teacher | `teacher` | `teacher123`|
 
 ---
 
 ## 📂 Project Structure
-- `app/`: Main application package.
-- `docs/`: Technical and user documentation.
-- `tests/`: Automated test suite.
-- `run.py`: Application entry point.
-- `seed.py`: Database initialization script.
+- `app/`: Core application package (models, routes, templates, static files).
+- `docs/`: Technical and architectural documentation.
+- `tests/`: Automated test suite for quality assurance.
+- `run.py`: Entry point for starting the development server.
+- `seed.py`: Professional data seeder script.
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Testing & Quality
+Run the automated test suite to verify system integrity:
 ```bash
 export PYTHONPATH=$PYTHONPATH:.
 python -m pytest
@@ -67,11 +80,11 @@ python -m pytest
 ---
 
 ## 👩‍💻 Documentation
-For more details, see the `docs/` folder:
+For in-depth details, refer to the `docs/` directory:
 - [Architectural Overview](docs/architecture.md)
-- [Database Schema](docs/database.md)
+- [Database Schema (ER Diagram)](docs/database.md)
 - [User Manual](docs/user_manual.md)
 
 ---
 
-Made with 💜 as a CS Final Year Project.
+Copyright © 2025 Afedia Glory & Awani Caleb. All Rights Reserved.

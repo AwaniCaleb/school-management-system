@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2025 Afedia Glory & Awani Caleb
+All Rights Reserved.
+"""
 from app import create_app
 
 app = create_app()

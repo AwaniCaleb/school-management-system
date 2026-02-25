@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2025 Afedia Glory & Awani Caleb
+All Rights Reserved.
+"""
 import os
 from flask import Flask
 from app.extensions import db, migrate

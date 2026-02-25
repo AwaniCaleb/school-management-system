@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}User Guide - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">User Guide & Workflows</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">System Workflows</h6>
+            </div>
+            <div class="card-body">
+                <h5>1. Setting Up Your School</h5>
+                <p>Start by going to <strong>Classes</strong> and adding your classes (e.g., JSS 1, SS 3). Once a class is created, you can add <strong>Subjects</strong> and enroll <strong>Students</strong>.</p>
+
+                <hr>
+
+                <h5>2. Academic Management</h5>
+                <p>Navigate to a Class and click <strong>Manage Exams</strong>. Create an exam (e.g., First Term Exam). After creating it, use the <strong>Enter Marks</strong> button to fill in scores for all students in that class at once.</p>
+
+                <hr>
+
+                <h5>3. Attendance Tracking</h5>
+                <p>In the Class Detail view, click <strong>Attendance</strong>. Select the date and toggle the switch for each student. Don't forget to click <strong>Save Attendance</strong>.</p>
+
+                <hr>
+
+                <h5>4. Fee Management</h5>
+                <p>Go to the <strong>Fees</strong> dashboard. Here you can define fee structures for each class (e.g., Tuition Fee, Library Fee). Click <strong>Details</strong> next to a student to record a payment.</p>
+
+                <hr>
+
+                <h5>5. End of Term Promotion</h5>
+                <p>Use the <strong>Promotion</strong> button in the Class Detail view to move students to the next class at the end of the academic year.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
