@@ -4,13 +4,20 @@ from app.models import User, Class, Subject, Student, Exam, FeeStructure, Settin
 from werkzeug.security import generate_password_hash
 from datetime import date, timedelta
 import random
+import warnings
+from sqlalchemy.exc import SAWarning
 
 def seed_db():
+    # Suppress circular dependency warnings during drop_all
+    warnings.filterwarnings("ignore", category=SAWarning, message="Can't sort tables for DROP")
     app = create_app()
     with app.app_context():
         # Drop all and create all for a fresh start
+        # Disabling foreign keys to avoid warnings about circular dependencies in SQLite
+        db.session.execute(db.text("PRAGMA foreign_keys = OFF;"))
         db.drop_all()
         db.create_all()
+        db.session.execute(db.text("PRAGMA foreign_keys = ON;"))
 
         # 1. Add Administrative Hierarchy
         users = [
