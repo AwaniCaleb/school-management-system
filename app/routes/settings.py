@@ -7,9 +7,11 @@ bp = Blueprint('settings', __name__, url_prefix='/settings')
 
 @bp.route("/", methods=["GET", "POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal", "vice_principal")
 def index():
     if request.method == "POST":
+        if g.user.role not in ["admin", "principal"]:
+            abort(403)
         # Update school name
         school_name = request.form.get("school_name")
         if school_name:
@@ -34,7 +36,7 @@ def view_logs():
 
 @bp.route("/add_teacher", methods=["POST"])
 @login_required
-@require_role("admin")
+@require_role("admin", "principal")
 def add_teacher():
     username = request.form.get("username")
     password = request.form.get("password")

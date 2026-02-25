@@ -7,7 +7,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # 'admin', 'teacher'
+    role = db.Column(db.String(20), nullable=False) # 'admin', 'principal', 'vice_principal', 'teacher', 'student'
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='SET NULL'))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -20,9 +21,11 @@ class Class(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     class_name = db.Column(db.String(50), nullable=False)
     section = db.Column(db.String(10), nullable=False)
+    form_teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
     __table_args__ = (db.UniqueConstraint('class_name', 'section', name='_class_section_uc'),)
 
-    students = db.relationship('Student', backref='student_class', cascade="all, delete-orphan", lazy=True)
+    form_teacher = db.relationship('User', foreign_keys=[form_teacher_id], backref='assigned_class')
+    students = db.relationship('Student', foreign_keys='Student.class_id', backref='student_class', cascade="all, delete-orphan", lazy=True)
     subjects = db.relationship('Subject', backref='subject_class', cascade="all, delete-orphan", lazy=True)
     exams = db.relationship('Exam', backref='exam_class', cascade="all, delete-orphan", lazy=True)
     attendance_sessions = db.relationship('AttendanceSession', backref='session_class', cascade="all, delete-orphan", lazy=True)
@@ -33,6 +36,9 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     class_id = db.Column(db.Integer, db.ForeignKey('classes.id', ondelete='CASCADE'), nullable=False)
     subject_name = db.Column(db.String(100), nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+
+    teacher = db.relationship('User', backref='taught_subjects')
 
 class Student(db.Model):
     __tablename__ = 'students'

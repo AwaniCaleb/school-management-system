@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, g, abort, Response, send_file
 from app.models import Class, Student, Subject, Exam, Mark
-from app.utils import login_required, require_role
+from app.utils import login_required, require_role, is_subject_teacher, can_manage_class
 from app.extensions import db
 import io
 import csv
@@ -45,6 +45,9 @@ def enter_marks(class_id):
         # Bulk save marks
         for s in cls.students:
             for sub in cls.subjects:
+                if not is_subject_teacher(sub):
+                    continue # Skip subjects not taught by this teacher
+
                 field_name = f"marks_{s.id}_{sub.id}"
                 marks_str = request.form.get(field_name, "0")
                 try:
@@ -66,7 +69,11 @@ def enter_marks(class_id):
     # Pre-load marks
     marks_map = {(m.student_id, m.subject_id): m.marks_obtained for m in exam.marks}
 
-    return render_template("exams/enter_marks.html", cls=cls, exam=exam, marks_map=marks_map)
+    return render_template("exams/enter_marks.html",
+                           cls=cls,
+                           exam=exam,
+                           marks_map=marks_map,
+                           is_subject_teacher=is_subject_teacher)
 
 @bp.route("/result/<int:student_id>")
 @login_required

@@ -16,9 +16,10 @@ A comprehensive, modular School Enterprise Resource Planning (ERP) application b
 - **ORM Integration**: Powered by SQLAlchemy for secure and efficient database management.
 - **Dynamic Dashboard**: Interactive system analytics with real-time charts (Chart.js) and RESTful API endpoints.
 - **Nigerian Academic Context**: Pre-configured for Nigerian secondary school structures (JSS/SS).
+- **Role-Based Portals**: Dedicated interfaces for Admin, Principal, Teachers, and Students.
 - **Core Modules**:
-  - **Class & Student Management**: Handle enrollments, profiles, and class promotions.
-  - **Academic Records**: Bulk marks entry, weighted exam scoring, and automated result card generation.
+  - **Class & Student Management**: Centralized student directory with detailed profiles.
+  - **Academic Records**: Specialized marks entry (Subject-specific for teachers), weighted scoring, and automated result card generation.
   - **Attendance Tracking**: Daily attendance recording with an intuitive interface.
   - **Financial Management**: Fee structure definition and student payment history tracking.
   - **Security & Accountability**: Role-based access control (Admin/Teacher) and comprehensive System Audit Logs.

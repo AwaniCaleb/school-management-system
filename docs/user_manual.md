@@ -2,32 +2,30 @@
 
 ## 1. Getting Started
 
-### Default Credentials
-- **Admin**: `admin` / `admin123`
-- **Teacher**: `teacher` / `teacher123`
+### Roles and Access Levels
+- **Admin**: Full control over everything.
+- **Principal**: Management of classes, students, fees, and system logs.
+- **Vice Principal**: Academic oversight and student record management.
+- **Form Teacher**: Manages a specific class (e.g., JSS 1A). Can take attendance and view all results for that class.
+- **Subject Teacher**: Assigned to teach a subject (e.g., Mathematics). Can enter marks for that subject in their assigned classes.
+- **Student**: Can log in to view their own profile, attendance, and result cards.
 
-## 2. Admin Dashboard
+## 2. Admin/Principal Dashboard
 The dashboard provides a high-level overview of the school's status. The "System Analytics" chart shows average performance across all classes.
 
-## 3. Class Management
-- **Add Class**: Define a new class and section.
-- **Manage Subjects**: Assign subjects to specific classes.
-- **Promotion**: Move students between classes (e.g., year-end).
-- **Export**: Download student lists as CSV for offline use.
+## 3. Class & Student Management
+- **Manage Classes**: Admins can assign **Form Teachers** to classes.
+- **Manage Subjects**: Admins can assign **Subject Teachers** to specific subjects.
+- **Enrollment**: Students can be enrolled globally and then added to specific classes with a roll number.
+- **Student Profile**: Holds detailed information including medical notes and guardian details.
 
-## 4. Student Management
-- **Enrollment**: Add students with detailed profiles (Gender, DOB, Contact, etc.).
-- **Search**: Quickly find students by name or roll number.
+## 4. Academic Management
+- **Marks Entry**: Subject Teachers see an input sheet ONLY for their assigned subjects. Admins and Form Teachers can see all marks.
+- **Result Cards**: Automatically generated and printable. Students can access their own via the Student Portal.
 
-## 5. Academic Management
-- **Exams**: Create exams with specific weightages.
-- **Marks Entry**: Use the bulk-entry sheet for efficiency.
-- **Result Cards**: Generate and print individual report cards.
+## 5. Fees & Attendance
+- **Attendance**: Restricted to Form Teachers and Admins.
+- **Fees**: Admins and Principals can manage class fee structures and record student payments.
 
-## 6. Fees & Attendance
-- **Attendance**: Daily tracking with a simple toggle interface.
-- **Fees**: Manage fee structures and track student payment history.
-
-## 7. System Settings & Logs
-- **Customization**: Change the school name globally.
-- **Audit Logs**: Review all system activities (logins, edits, etc.) for accountability.
+## 6. Student Portal
+Students use their **Roll Number** (lowercase) as their username to log in. They have a personalized dashboard showing their academic standing and outstanding fees.

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}My Results - School ERP{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">My Academic Results</h1>
+    <a href="{{ url_for('student_portal.dashboard') }}" class="btn btn-secondary shadow-sm">
+        <i class="fas fa-arrow-left"></i> Dashboard
+    </a>
+</div>
+
+<div class="row">
+    {% if exams %}
+        {% for e in exams %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ e.name }}</h6>
+                    <small class="text-muted">{{ e.exam_type }}</small>
+                </div>
+                <div class="card-body text-center">
+                    <a href="{{ url_for('exams.student_result', student_id=stu.id, exam_id=e.id) }}" class="btn btn-info text-white w-100 mb-2">View Result Card</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card shadow p-5 text-center text-muted">
+                <i class="fas fa-file-alt fa-3x mb-3"></i>
+                <p>No results found for your enrollment.</p>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

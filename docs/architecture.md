@@ -13,6 +13,7 @@ The application logic is divided into specialized modules using Flask Blueprints
 - **Main**: Dashboard and search functionality.
 - **Classes**: Class, subject, and promotion management.
 - **Students**: Student profile management with expanded fields.
+- **Student Portal**: Dedicated read-only access for student accounts.
 - **Exams**: Exam scheduling and bulk marks entry.
 - **Fees**: Fee structure and payment tracking.
 - **Attendance**: Daily attendance recording.
@@ -22,8 +23,14 @@ The application logic is divided into specialized modules using Flask Blueprints
 ### 3. Object-Relational Mapping (ORM)
 We use **Flask-SQLAlchemy** to interface with the SQLite database. This abstracts raw SQL queries into Python objects, improving security and code readability.
 
-### 4. RESTful API Principles
-Data for the dashboard charts is fetched asynchronously via JSON endpoints, providing a modern user experience.
+### 4. Granular Permissions & Roles
+The system implements a sophisticated hierarchical permission model:
+- **Admin**: Full system access, including technical configuration.
+- **Principal**: High-level management, log viewing, and fee management.
+- **Vice Principal**: Academic and student record management.
+- **Form Teacher**: Full management rights for their specific assigned class (Attendance, Results verification).
+- **Subject Teacher**: Edit access restricted only to the subjects they teach.
+- **Student**: Read-only access to their own profile, results, and fee status.
 
 ## Technology Stack
 - **Backend**: Python 3.12, Flask 3.1

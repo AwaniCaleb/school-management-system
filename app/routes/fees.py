@@ -9,14 +9,23 @@ bp = Blueprint('fees', __name__)
 @bp.route("/fees")
 @login_required
 def dashboard():
-    classes = Class.query.all()
+    if g.user.role == 'teacher':
+        # Teachers see fees for their class
+        classes = Class.query.filter(
+            (Class.form_teacher_id == g.user.id) |
+            (Class.subjects.any(Subject.teacher_id == g.user.id))
+        ).all()
+    elif g.user.role == 'student':
+        return redirect(url_for('student_portal.dashboard'))
+    else:
+        classes = Class.query.all()
     return render_template("fees/dashboard.html", classes=classes)
 
 @bp.route("/fees/class/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def class_fees(class_id):
     cls = Class.query.get_or_404(class_id)
-    if request.method == "POST" and g.user.role == 'admin':
+    if request.method == "POST" and g.user.role in ['admin', 'principal', 'vice_principal']:
         name = request.form["name"].strip()
         try:
             amount = float(request.form["amount"])

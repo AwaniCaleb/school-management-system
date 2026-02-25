@@ -6,7 +6,10 @@ This project uses SQLite with SQLAlchemy ORM.
 
 ```mermaid
 erDiagram
-    USER ||--o{ CLASS : manages
+    USER ||--o{ CLASS : form_teacher_of
+    USER ||--o{ SUBJECT : teaches
+    USER ||--o| STUDENT : links_to
+
     CLASS ||--o{ STUDENT : contains
     CLASS ||--o{ SUBJECT : has
     CLASS ||--o{ EXAM : schedules
@@ -28,12 +31,14 @@ erDiagram
         string username
         string password_hash
         string role
+        int student_id
     }
 
     CLASS {
         int id
         string class_name
         string section
+        int form_teacher_id
     }
 
     STUDENT {
@@ -42,9 +47,16 @@ erDiagram
         string roll_no
         string gender
         string dob
+        string blood_group
+        string religion
+        string state_of_origin
         string address
         string guardian_name
+        string guardian_phone
         string contact_no
+        string enrollment_date
+        string status
+        text medical_notes
         int class_id
     }
 
@@ -52,6 +64,7 @@ erDiagram
         int id
         string subject_name
         int class_id
+        int teacher_id
     }
 
     EXAM {

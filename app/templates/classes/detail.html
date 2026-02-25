@@ -7,10 +7,15 @@
     <h1 class="h3 mb-0 text-gray-800">
         Class Details: {{ cls.class_name }} - {{ cls.section }}
     </h1>
+    {% if cls.form_teacher %}
+    <span class="badge bg-secondary">Form Teacher: {{ cls.form_teacher.username }}</span>
+    {% endif %}
     <div>
+        {% if g.user.role in ['admin', 'principal', 'vice_principal'] or cls.form_teacher_id == g.user.id %}
         <a href="{{ url_for('attendance.take_attendance', class_id=cls.id) }}" class="btn btn-warning shadow-sm me-2">
             <i class="fas fa-calendar-check me-1"></i> Attendance
         </a>
+        {% endif %}
         <a href="{{ url_for('exams.class_results', class_id=cls.id) }}" class="btn btn-info text-white shadow-sm me-2">
             <i class="fas fa-chart-line me-1"></i> Class Results
         </a>
@@ -25,16 +30,18 @@
     <div class="col-12 mb-4">
         <div class="card shadow">
             <div class="card-body">
+                {% if g.user.role in ['admin', 'principal', 'vice_principal'] or cls.form_teacher_id == g.user.id %}
                 <a href="{{ url_for('students.add_to_class', class_id=cls.id) }}" class="btn btn-success me-2">
                     <i class="fas fa-user-plus"></i> Add Student
                 </a>
                 <a href="{{ url_for('classes.add_subject', class_id=cls.id) }}" class="btn btn-primary me-2">
                     <i class="fas fa-book"></i> Add Subject
                 </a>
+                {% endif %}
                 <a href="{{ url_for('exams.list_exams', class_id=cls.id) }}" class="btn btn-info text-white me-2">
                     <i class="fas fa-file-invoice"></i> Manage Exams
                 </a>
-                {% if g.user.role == 'admin' %}
+                {% if g.user.role in ['admin', 'principal'] %}
                 <a href="{{ url_for('classes.edit_class', class_id=cls.id) }}" class="btn btn-outline-warning me-2">
                     <i class="fas fa-edit"></i> Edit Class
                 </a>
@@ -62,8 +69,13 @@
                 <div class="list-group list-group-flush">
                     {% for sub in cls.subjects %}
                     <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                        {{ sub.subject_name }}
-                        {% if g.user.role == 'admin' %}
+                        <div>
+                            {{ sub.subject_name }}
+                            {% if sub.teacher %}
+                            <br><small class="text-muted">Teacher: {{ sub.teacher.username }}</small>
+                            {% endif %}
+                        </div>
+                        {% if g.user.role in ['admin', 'principal'] %}
                         <div>
                             <a href="{{ url_for('classes.edit_subject', subject_id=sub.id) }}" class="text-warning me-2"><i class="fas fa-edit"></i></a>
                             <form action="{{ url_for('classes.delete_subject', subject_id=sub.id) }}" method="POST" class="d-inline">

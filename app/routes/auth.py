@@ -34,6 +34,9 @@ def login():
             from app.utils import log_action
             log_action(f"User {username} logged in")
             flash("Logged in successfully.", "s")
+
+            if user.role == 'student':
+                return redirect(url_for('student_portal.dashboard'))
             return redirect(url_for('main.home'))
 
     return render_template("auth/login.html")

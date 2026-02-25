@@ -26,7 +26,7 @@ def create_app(test_config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints
-    from app.routes import auth, main, classes, students, exams, fees, attendance, api, settings
+    from app.routes import auth, main, classes, students, exams, fees, attendance, api, settings, student_portal
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
     app.register_blueprint(classes.bp)
@@ -36,5 +36,6 @@ def create_app(test_config=None):
     app.register_blueprint(attendance.bp)
     app.register_blueprint(api.bp)
     app.register_blueprint(settings.bp)
+    app.register_blueprint(student_portal.bp)
 
     return app
