@@ -30,9 +30,10 @@ def dashboard():
 
 @bp.route("/fees/class/<int:class_id>", methods=["GET", "POST"])
 @login_required
+@require_role("admin", "principal", "vp_admin")
 def class_fees(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
-    if request.method == "POST" and g.user.role in ['admin', 'principal', 'vice_principal']:
+    if request.method == "POST":
         name = request.form["name"].strip()
         try:
             amount = float(request.form["amount"])
@@ -70,6 +71,7 @@ def class_fees(class_id):
 
 @bp.route("/fees/student/<int:student_id>", methods=["GET", "POST"])
 @login_required
+@require_role("admin", "principal", "vp_admin")
 def student_fees(student_id):
     stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":

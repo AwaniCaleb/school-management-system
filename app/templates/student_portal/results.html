@@ -35,7 +35,7 @@
                         <td class="fw-bold">{{ e.name }}</td>
                         <td>{{ e.exam_type }}</td>
                         <td class="text-center">
-                            <a href="{{ url_for('exams.student_result', student_id=stu.id, exam_id=e.id) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ url_for('student_portal.report_card', exam_id=e.id) }}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye"></i> View Report Card
                             </a>
                         </td>

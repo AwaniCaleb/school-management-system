@@ -9,7 +9,7 @@ bp = Blueprint('exams', __name__)
 
 @bp.route("/exams/<int:class_id>", methods=["GET", "POST"])
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "vp_admin", "hod", "teacher")
 def list_exams(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
@@ -40,7 +40,7 @@ def list_exams(class_id):
 
 @bp.route("/enter-marks/<int:class_id>", methods=["GET", "POST"])
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "hod", "teacher")
 def enter_marks(class_id):
     exam_id = request.args.get("exam_id") or request.form.get("exam_id")
     if not exam_id:
@@ -88,9 +88,8 @@ def enter_marks(class_id):
 
 @bp.route("/result/<int:student_id>")
 @login_required
+@require_role("admin", "principal", "vp_academic", "vp_admin", "hod", "teacher")
 def student_result(student_id):
-    if g.user.role == 'student' and g.user.student_id != student_id:
-        abort(403)
     stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
     exam_id = request.args.get("exam_id")
 
@@ -127,7 +126,7 @@ def student_result(student_id):
 
 @bp.route("/class/<int:class_id>/results")
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "vp_admin", "hod", "teacher")
 def class_results(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     exam_id = request.args.get("exam_id")

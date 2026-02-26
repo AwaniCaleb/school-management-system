@@ -1,6 +1,6 @@
 from app import create_app
 from app.extensions import db
-from app.models import School, Session, User, Class, Subject, Student, Exam, FeeStructure, Setting, Mark, AttendanceSession, AttendanceRecord, FeePayment, SubjectTeacherAssignment
+from app.models import School, Session, User, Class, Subject, Student, Exam, FeeStructure, Setting, Mark, AttendanceSession, AttendanceRecord, FeePayment, SubjectTeacherAssignment, Department
 from werkzeug.security import generate_password_hash
 from datetime import date, timedelta
 import random
@@ -36,24 +36,35 @@ def seed_db():
         s1_admin.set_password('admin123')
         s1_principal = User(username='principal', role='principal', school_id=school1.id, full_name='Dr. Olumide Johnson', email='principal@lagosheritage.edu.ng', phone_number='08012345678')
         s1_principal.set_password('principal123')
-        s1_vp = User(username='vp_academic', role='vice_principal', school_id=school1.id, full_name='Mrs. Adesua Eze', email='vp.academic@lagosheritage.edu.ng', phone_number='08023456789')
-        s1_vp.set_password('vp123')
-        db.session.add_all([s1_admin, s1_principal, s1_vp])
+        s1_vp_aca = User(username='vp_academic', role='vp_academic', school_id=school1.id, full_name='Mrs. Adesua Eze', email='vp.academic@lagosheritage.edu.ng', phone_number='08023456789')
+        s1_vp_aca.set_password('vp123')
+        s1_vp_adm = User(username='vp_admin', role='vp_admin', school_id=school1.id, full_name='Mr. Segun Arinze', email='vp.admin@lagosheritage.edu.ng', phone_number='08022223333')
+        s1_vp_adm.set_password('vp123')
+        db.session.add_all([s1_admin, s1_principal, s1_vp_aca, s1_vp_adm])
+
+        # Departments
+        dept_science = Department(name='Sciences', school_id=school1.id)
+        dept_arts = Department(name='Arts & Humanities', school_id=school1.id)
+        db.session.add_all([dept_science, dept_arts])
+        db.session.flush()
 
         # Teachers for School 1
         teacher_data = [
-            ('adeyemi_f', 'Mr. Femi Adeyemi', 'femi.adeyemi@lagosheritage.edu.ng', '08034567890'),
-            ('balogun_b', 'Mrs. Bisi Balogun', 'bisi.balogun@lagosheritage.edu.ng', '08045678901'),
-            ('okonkwo_c', 'Mr. Chinedu Okonkwo', 'chinedu.okonkwo@lagosheritage.edu.ng', '08056789012'),
-            ('chioma_n', 'Ms. Ngozi Chioma', 'ngozi.chioma@lagosheritage.edu.ng', '08067890123')
+            ('adeyemi_f', 'Mr. Femi Adeyemi', 'femi.adeyemi@lagosheritage.edu.ng', '08034567890', dept_science.id, 'hod'),
+            ('balogun_b', 'Mrs. Bisi Balogun', 'bisi.balogun@lagosheritage.edu.ng', '08045678901', dept_arts.id, 'hod'),
+            ('okonkwo_c', 'Mr. Chinedu Okonkwo', 'chinedu.okonkwo@lagosheritage.edu.ng', '08056789012', dept_science.id, 'teacher'),
+            ('chioma_n', 'Ms. Ngozi Chioma', 'ngozi.chioma@lagosheritage.edu.ng', '08067890123', dept_arts.id, 'teacher')
         ]
         s1_teachers = []
-        for uname, name, email, phone in teacher_data:
-            t = User(username=uname, role='teacher', school_id=school1.id, full_name=name, email=email, phone_number=phone)
+        for uname, name, email, phone, dept_id, role in teacher_data:
+            t = User(username=uname, role=role, school_id=school1.id, full_name=name, email=email, phone_number=phone, department_id=dept_id)
             t.set_password('teacher123')
             db.session.add(t)
             s1_teachers.append(t)
         db.session.flush()
+
+        dept_science.hod_id = s1_teachers[0].id
+        dept_arts.hod_id = s1_teachers[1].id
 
         # Classes (Exist across all sessions)
         class_names = ['JSS 1', 'JSS 2', 'JSS 3', 'SS 1', 'SS 2', 'SS 3']
@@ -71,10 +82,16 @@ def seed_db():
         db.session.flush()
 
         # Subjects (Exist across all sessions)
-        nigerian_subjects = ['Mathematics', 'English Language', 'Biology', 'Civic Education', 'Economics', 'Physics', 'Chemistry']
         db_subjects = []
-        for s_name in nigerian_subjects:
-            sub = Subject(subject_name=s_name, school_id=school1.id)
+        sci_subs = ['Mathematics', 'Biology', 'Physics', 'Chemistry']
+        art_subs = ['English Language', 'Civic Education', 'Economics']
+
+        for s_name in sci_subs:
+            sub = Subject(subject_name=s_name, school_id=school1.id, department_id=dept_science.id)
+            db.session.add(sub)
+            db_subjects.append(sub)
+        for s_name in art_subs:
+            sub = Subject(subject_name=s_name, school_id=school1.id, department_id=dept_arts.id)
             db.session.add(sub)
             db_subjects.append(sub)
         db.session.flush()

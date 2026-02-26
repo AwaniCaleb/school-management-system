@@ -18,6 +18,9 @@ def require_role(*roles):
                 flash("Login required.", "danger")
                 return redirect(url_for('auth.login'))
             if g.user.role not in roles:
+                if g.user.role == 'student':
+                    flash("Access restricted to staff members.", "danger")
+                    return redirect(url_for('student_portal.dashboard'))
                 abort(403)
             return view(**kwargs)
         return wrapped_view
@@ -37,20 +40,26 @@ def log_action(action):
 def is_admin():
     return g.user and g.user.role in ['admin', 'principal']
 
+def is_vp():
+    return g.user and g.user.role in ['vp_academic', 'vp_admin']
+
 def is_form_teacher(class_obj):
     if not g.user: return False
-    if is_admin(): return True
-    return g.user.role == 'teacher' and class_obj.form_teacher_id == g.user.id
+    if is_admin() or is_vp(): return True
+    return g.user.role in ['teacher', 'hod'] and class_obj.form_teacher_id == g.user.id
 
 def is_subject_teacher(assignment_obj):
     if not g.user: return False
-    if is_admin(): return True
-    if g.user.role == 'teacher' and assignment_obj.teacher_id == g.user.id:
+    if is_admin() or is_vp(): return True
+    if g.user.role in ['teacher', 'hod'] and assignment_obj.teacher_id == g.user.id:
+        return True
+    # HOD can manage subjects in their department
+    if g.user.role == 'hod' and assignment_obj.subject.department_id == g.user.department_id:
         return True
     return False
 
 def can_manage_class(class_obj):
-    return is_admin() or is_form_teacher(class_obj)
+    return is_admin() or is_vp() or is_form_teacher(class_obj)
 
 def generate_roll_no(student, class_obj):
     if not class_obj:

@@ -19,6 +19,7 @@ class School(db.Model):
     classes = db.relationship('Class', backref='school', cascade="all, delete-orphan", lazy=True)
     subjects = db.relationship('Subject', backref='school', cascade="all, delete-orphan", lazy=True)
     exams = db.relationship('Exam', backref='school', cascade="all, delete-orphan", lazy=True)
+    departments = db.relationship('Department', backref='school', cascade="all, delete-orphan", lazy=True)
     fee_structures = db.relationship('FeeStructure', backref='school', cascade="all, delete-orphan", lazy=True)
     audit_logs = db.relationship('AuditLog', backref='school', cascade="all, delete-orphan", lazy=True)
     settings = db.relationship('Setting', backref='school', cascade="all, delete-orphan", lazy=True)
@@ -46,8 +47,9 @@ class User(db.Model):
     email = db.Column(db.String(100))
     phone_number = db.Column(db.String(20))
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False) # 'admin', 'principal', 'vice_principal', 'teacher', 'student'
+    role = db.Column(db.String(30), nullable=False) # 'admin', 'principal', 'vp_academic', 'vp_admin', 'hod', 'teacher', 'student'
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='SET NULL'))
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
 
     __table_args__ = (db.UniqueConstraint('school_id', 'username', name='_school_username_uc'),)
 
@@ -77,10 +79,20 @@ class Class(db.Model):
     attendance_sessions = db.relationship('AttendanceSession', backref='session_class', cascade="all, delete-orphan", lazy=True)
     subject_assignments = db.relationship('SubjectTeacherAssignment', backref='assigned_class', cascade="all, delete-orphan", lazy=True)
 
+class Department(db.Model):
+    __tablename__ = 'departments'
+    id = db.Column(db.Integer, primary_key=True)
+    school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    hod_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+
+    hod = db.relationship('User', foreign_keys=[hod_id], backref='headed_department')
+
 class Subject(db.Model):
     __tablename__ = 'subjects'
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
+    department_id = db.Column(db.Integer, db.ForeignKey('departments.id', ondelete='SET NULL'))
     subject_name = db.Column(db.String(100), nullable=False)
 
     assignments = db.relationship('SubjectTeacherAssignment', backref='subject', cascade="all, delete-orphan", lazy=True)

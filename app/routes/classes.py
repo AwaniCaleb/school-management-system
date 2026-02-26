@@ -7,7 +7,7 @@ bp = Blueprint('classes', __name__)
 
 @bp.route("/classes")
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "vp_admin", "hod", "teacher")
 def list_classes():
     if g.user.role == 'teacher':
         # For teachers, show classes where they are form teacher OR have a subject assignment in CURRENT session
@@ -58,7 +58,7 @@ def add_class():
 
 @bp.route("/class/<int:class_id>")
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "vp_admin", "hod", "teacher")
 def class_detail(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
 
@@ -109,7 +109,7 @@ def delete_class(class_id):
 
 @bp.route("/promote-class/<int:class_id>", methods=["GET", "POST"])
 @login_required
-@require_role("admin", "principal")
+@require_role("admin", "principal", "vp_academic")
 def promote_class(class_id):
     source = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     # Can promote to classes in next sessions ideally, but for now allow any class in school
@@ -217,7 +217,7 @@ def delete_subject(subject_id):
 
 @bp.route("/class/<int:class_id>/students-csv")
 @login_required
-@require_role("admin", "principal", "vice_principal", "teacher")
+@require_role("admin", "principal", "vp_academic", "vp_admin", "teacher")
 def export_students_csv(class_id):
     import io
     import csv

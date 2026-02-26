@@ -10,6 +10,11 @@ erDiagram
     SCHOOL ||--o{ USER : contains
     SCHOOL ||--o{ CLASS : has
     SCHOOL ||--o{ STUDENT : manages
+    SCHOOL ||--o{ DEPARTMENT : has
+
+    DEPARTMENT ||--o{ SUBJECT : categorizes
+    DEPARTMENT ||--o{ USER : belongs_to
+    DEPARTMENT |o--o| USER : headed_by
 
     SESSION ||--o{ EXAM : scoped_to
     SESSION ||--o{ FEE_STRUCTURE : scoped_to
@@ -59,6 +64,7 @@ erDiagram
         string email
         string phone_number
         int student_id
+        int department_id
     }
 
     CLASS {
@@ -90,7 +96,15 @@ erDiagram
     SUBJECT {
         int id
         int school_id
+        int department_id
         string subject_name
+    }
+
+    DEPARTMENT {
+        int id
+        int school_id
+        string name
+        int hod_id
     }
 
     SUBJECT_TEACHER_ASSIGNMENT {

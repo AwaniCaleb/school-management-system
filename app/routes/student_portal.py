@@ -87,6 +87,35 @@ def profile():
     stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first_or_404()
     return render_template("student_portal/profile.html", stu=stu)
 
+@bp.route("/report-card/<int:exam_id>")
+@login_required
+def report_card(exam_id):
+    if g.user.role != 'student' or not g.user.student_id:
+        return redirect(url_for('main.home'))
+
+    stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first_or_404()
+    exam = Exam.query.filter_by(id=exam_id, class_id=stu.class_id).first_or_404()
+
+    results = []
+    total = 0
+    from app.models import SubjectTeacherAssignment, Mark
+    assignments = SubjectTeacherAssignment.query.filter_by(class_id=stu.class_id, session_id=exam.session_id).all()
+    for a in assignments:
+        sub = a.subject
+        mark = Mark.query.filter_by(student_id=stu.id, subject_id=sub.id, exam_id=exam.id).first()
+        val = mark.marks_obtained if mark else 0.0
+        results.append({
+            'subject_name': sub.subject_name,
+            'marks': val,
+            'verification_code': mark.verification_code if mark else 'N/A'
+        })
+        total += val
+
+    max_total = len(results) * 100
+    percentage = (total / max_total * 100) if max_total else 0.0
+
+    return render_template("exams/result.html", stu=stu, exam=exam, results=results, total=total, max_total=max_total, percentage=percentage)
+
 @bp.route("/subjects")
 @login_required
 def subjects():
