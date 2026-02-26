@@ -2,189 +2,299 @@
 
 {% block title %}My Dashboard - School ERP{% endblock %}
 
+{% block head %}
+<style>
+    .dashboard-card {
+        border-radius: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.1) !important;
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Welcome, {{ stu.name }}!</h1>
+    <h1 class="h3 mb-0 text-gray-800 fw-bold">Student Hub</h1>
+    <div class="text-muted">{{ g.current_session.name }} Academic Year</div>
 </div>
 
 <div class="row">
-    <!-- Profile Summary -->
-    <div class="col-lg-4">
-        <div class="card shadow mb-4">
-            <div class="card-body text-center">
-                <div class="mb-3">
-                    <i class="fas fa-user-circle fa-7x text-gray-300"></i>
+    <!-- Profile Card -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow dashboard-card mb-4 border-0">
+            <div class="card-body text-center py-5">
+                <div class="mb-4 position-relative d-inline-block">
+                    <img src="https://ui-avatars.com/api/?name={{ stu.name }}&background=4e73df&color=fff&size=128" class="rounded-circle shadow-sm" alt="Profile">
+                    <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success border border-white border-2 p-2">
+                        <span class="visually-hidden">Active</span>
+                    </span>
                 </div>
-                <h4 class="fw-bold">{{ stu.name }}</h4>
-                <p class="text-muted mb-1">{{ stu.student_class.class_name }} - {{ stu.student_class.section }}</p>
-                <p class="text-muted small">Roll No: {{ stu.roll_no }}</p>
-                <a href="{{ url_for('student_portal.profile') }}" class="btn btn-sm btn-outline-primary px-4">View My Full Profile</a>
+                <h4 class="fw-bold text-dark mb-1">{{ stu.name }}</h4>
+                <p class="text-primary fw-medium mb-3">{{ stu.student_class.class_name }} - {{ stu.student_class.section }}</p>
+
+                <div class="row g-2 mb-4 px-4">
+                    <div class="col-6">
+                        <div class="bg-light p-2 rounded-3 text-start">
+                            <small class="text-muted d-block">Roll Number</small>
+                            <span class="fw-bold">{{ stu.roll_no }}</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-light p-2 rounded-3 text-start">
+                            <small class="text-muted d-block">Status</small>
+                            <span class="badge bg-soft-success text-success">Active</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ url_for('student_portal.profile') }}" class="btn btn-primary rounded-pill px-4 w-75 shadow-sm">
+                    View Full Profile
+                </a>
             </div>
         </div>
 
-        <!-- Form Teacher Card -->
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Form Teacher</h6>
-            </div>
-            <div class="card-body">
-                {% if stu.student_class and stu.student_class.form_teacher %}
-                    <div class="d-flex align-items-center">
-                        <div class="me-3">
-                            <i class="fas fa-chalkboard-teacher fa-2x text-gray-300"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold">{{ stu.student_class.form_teacher.display_name }}</div>
-                            <div class="text-muted small">Contact: {{ stu.student_class.form_teacher.phone_number or 'N/A' }}</div>
-                        </div>
+        <!-- Form Teacher & Balance Summary -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow dashboard-card mb-4 border-0">
+                    <div class="card-body">
+                        <h6 class="text-uppercase text-muted fw-bold small mb-3">Form Teacher</h6>
+                        {% if stu.student_class and stu.student_class.form_teacher %}
+                            <div class="d-flex align-items-center">
+                                <div class="stat-icon bg-soft-primary text-primary me-3">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ stu.student_class.form_teacher.display_name }}</div>
+                                    <div class="text-muted small">
+                                        <i class="fas fa-phone-alt me-1"></i> {{ stu.student_class.form_teacher.phone_number or 'N/A' }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted mb-0">No teacher assigned.</p>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <p class="text-muted mb-0">No form teacher assigned.</p>
-                {% endif %}
+                </div>
             </div>
-        </div>
-
-        <!-- Fee Status Card -->
-        <div class="card border-start border-danger border-4 shadow mb-4">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Outstanding Balance</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦ {{ "%.2f"|format(balance) }}</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+            <div class="col-12">
+                <div class="card shadow dashboard-card mb-4 border-0 bg-gradient-danger text-white" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-uppercase small fw-bold opacity-75 mb-2">Pending Dues</h6>
+                                <h2 class="fw-bold mb-0">₦ {{ "%.2f"|format(balance) }}</h2>
+                            </div>
+                            <div class="stat-icon bg-white bg-opacity-25 text-white">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3 small">
+                            <i class="fas fa-info-circle me-1"></i> Due by end of term
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Academic Progress -->
-    <div class="col-lg-8">
-        <!-- Visual Insights -->
+    <!-- Charts & Tables -->
+    <div class="col-xl-8 col-lg-7">
         <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card shadow h-100">
-                    <div class="card-header py-3 bg-white">
-                        <h6 class="m-0 font-weight-bold text-primary">Academic Performance</h6>
+            <!-- Radar Chart for Performance -->
+            <div class="col-lg-7 mb-4">
+                <div class="card shadow dashboard-card border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 pb-0">
+                        <h6 class="m-0 font-weight-bold text-dark">Subject Mastery</h6>
+                        <small class="text-muted">Relative performance across subjects</small>
                     </div>
-                    <div class="card-body">
-                        <canvas id="performanceChart"></canvas>
+                    <div class="card-body py-4">
+                        <div class="chart-container">
+                            <canvas id="performanceRadar"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card shadow h-100">
-                    <div class="card-header py-3 bg-white">
-                        <h6 class="m-0 font-weight-bold text-primary">Financial Summary</h6>
+            <!-- Polar Area Chart for Fees -->
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow dashboard-card border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 pb-0">
+                        <h6 class="m-0 font-weight-bold text-dark">Payment Distribution</h6>
+                        <small class="text-muted">Paid vs Outstanding</small>
                     </div>
-                    <div class="card-body">
-                        <canvas id="feeChart"></canvas>
+                    <div class="card-body py-4">
+                        <div class="chart-container">
+                            <canvas id="feePolarArea"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 bg-primary text-white d-flex justify-content-between align-items-center">
-                <h6 class="m-0 font-weight-bold">Latest Exam Result: {{ exam.name if exam else 'N/A' }}</h6>
+        <!-- Result Summary Table -->
+        <div class="card shadow dashboard-card border-0 mb-4">
+            <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="m-0 font-weight-bold text-dark">Latest Assessment</h6>
+                    <small class="text-muted">{{ exam.name if exam else 'No assessments found' }}</small>
+                </div>
                 {% if exam %}
-                <a href="{{ url_for('student_portal.report_card', exam_id=exam.id) }}" class="btn btn-sm btn-light">
-                    <i class="fas fa-print fa-sm"></i> Print Result
+                <a href="{{ url_for('student_portal.report_card', exam_id=exam.id) }}" class="btn btn-sm btn-soft-primary rounded-pill px-3">
+                    <i class="fas fa-external-link-alt me-1"></i> Full Report
                 </a>
                 {% endif %}
             </div>
             <div class="card-body">
                 {% if exam %}
                 <div class="table-responsive">
-                    <table class="table table-bordered align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Subject</th>
-                                <th class="text-center">Score (100)</th>
+                    <table class="table table-borderless align-middle mb-0">
+                        <thead>
+                            <tr class="text-muted small text-uppercase">
+                                <th class="ps-0">Subject</th>
+                                <th class="text-center">Score</th>
+                                <th>Progress</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for r in results %}
                             <tr>
-                                <td>{{ r.subject_name }}</td>
-                                <td class="text-center fw-bold">{{ r.marks }}</td>
+                                <td class="ps-0 fw-medium text-dark">{{ r.subject_name }}</td>
+                                <td class="text-center">
+                                    <span class="badge {% if r.marks >= 70 %}bg-soft-success text-success{% elif r.marks >= 50 %}bg-soft-warning text-warning{% else %}bg-soft-danger text-danger{% endif %} rounded-pill">
+                                        {{ r.marks }}
+                                    </span>
+                                </td>
+                                <td style="width: 40%;">
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar {% if r.marks >= 70 %}bg-success{% elif r.marks >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             role="progressbar"
+                                             style="width: {{ r.marks }}%"
+                                             aria-valuenow="{{ r.marks }}"
+                                             aria-valuemin="0"
+                                             aria-valuemax="100"></div>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
-                        <tfoot>
-                            <tr class="table-info">
-                                <th class="text-end">Percentage</th>
-                                <th class="text-center">{{ "%.2f"|format(percentage) }}%</th>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
                 {% else %}
-                <div class="text-center py-4 text-muted">
-                    No examination results available for your class yet.
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-calendar-times fa-3x mb-3 opacity-25"></i>
+                    <p>Examination results will appear here once published.</p>
                 </div>
                 {% endif %}
-                <div class="text-center mt-3">
-                    <a href="{{ url_for('student_portal.view_results') }}" class="btn btn-outline-secondary">View All Past Results</a>
-                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Utility Classes for "Soft" UI */
+    .bg-soft-primary { background-color: rgba(78, 115, 223, 0.1); }
+    .bg-soft-success { background-color: rgba(28, 200, 138, 0.1); }
+    .bg-soft-warning { background-color: rgba(246, 194, 62, 0.1); }
+    .bg-soft-danger { background-color: rgba(231, 74, 59, 0.1); }
+    .btn-soft-primary {
+        background-color: rgba(78, 115, 223, 0.1);
+        color: #4e73df;
+        border: none;
+    }
+    .btn-soft-primary:hover {
+        background-color: #4e73df;
+        color: #fff;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Academic Performance Chart (Radar/Bar)
-    const perfCtx = document.getElementById('performanceChart').getContext('2d');
-    const performanceChart = new Chart(perfCtx, {
-        type: 'bar',
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#858796';
+
+    // Academic Mastery Radar Chart
+    const radarCtx = document.getElementById('performanceRadar').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
         data: {
             labels: [{% for r in results %}"{{ r.subject_name }}"{% if not loop.last %}, {% endif %}{% endfor %}],
             datasets: [{
-                label: 'Score',
+                label: 'Subject Mastery',
                 data: [{% for r in results %}{{ r.marks }}{% if not loop.last %}, {% endif %}{% endfor %}],
-                backgroundColor: 'rgba(78, 115, 223, 0.5)',
-                borderColor: 'rgba(78, 115, 223, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100
-                }
-            }
-        }
-    });
-
-    // Fee Status Chart (Doughnut)
-    const feeCtx = document.getElementById('feeChart').getContext('2d');
-    const feeChart = new Chart(feeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Paid', 'Balance'],
-            datasets: [{
-                data: [{{ total_paid }}, {{ balance }}],
-                backgroundColor: ['#1cc88a', '#e74c3c'],
-                hoverBackgroundColor: ['#17a673', '#be2617'],
-                hoverBorderColor: "rgba(234, 236, 244, 1)",
+                backgroundColor: 'rgba(78, 115, 223, 0.2)',
+                borderColor: '#4e73df',
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#4e73df',
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+            scales: {
+                r: {
+                    angleLines: { display: true },
+                    suggestedMin: 0,
+                    suggestedMax: 100,
+                    ticks: { display: false }
                 }
             },
-            cutout: '70%',
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // Financial Polar Area Chart
+    const polarCtx = document.getElementById('feePolarArea').getContext('2d');
+    new Chart(polarCtx, {
+        type: 'polarArea',
+        data: {
+            labels: ['Total Paid', 'Total Due'],
+            datasets: [{
+                data: [{{ total_paid }}, {{ total_due }}],
+                backgroundColor: [
+                    'rgba(28, 200, 138, 0.7)',
+                    'rgba(231, 74, 59, 0.7)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    ticks: { display: false },
+                    grid: { display: true }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { usePointStyle: true, boxWidth: 6 }
+                }
+            }
         }
     });
 </script>
