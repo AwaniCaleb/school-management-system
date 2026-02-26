@@ -172,6 +172,7 @@
                         <i class="fas fa-bars"></i>
                     </button>
 
+                    {% if g.user.role != 'student' %}
                     <form class="d-none d-sm-inline-block form-inline ms-auto me-3 my-2 my-md-0 mw-100 navbar-search" action="{{ url_for('main.search') }}">
                         <div class="input-group">
                             <input type="text" name="q" class="form-control bg-light border-0 small" placeholder="Search student..." aria-label="Search" required>
@@ -180,6 +181,7 @@
                             </button>
                         </div>
                     </form>
+                    {% endif %}
                     {% endif %}
 
                     <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">

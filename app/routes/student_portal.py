@@ -73,10 +73,19 @@ def view_results():
         return redirect(url_for('main.home'))
 
     stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first()
-    # Get all exams the student has marks in
-    exams = db.session.query(Exam).join(Mark).filter(Mark.student_id == stu.id).distinct().all()
+    # Get all exams the student has marks in, along with their session info
+    results_list = db.session.query(Exam).join(Mark).filter(Mark.student_id == stu.id).distinct().order_by(Exam.session_id.desc(), Exam.id.desc()).all()
 
-    return render_template("student_portal/results.html", stu=stu, exams=exams)
+    return render_template("student_portal/results.html", stu=stu, exams=results_list)
+
+@bp.route("/profile")
+@login_required
+def profile():
+    if g.user.role != 'student' or not g.user.student_id:
+        return redirect(url_for('main.home'))
+
+    stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first_or_404()
+    return render_template("student_portal/profile.html", stu=stu)
 
 @bp.route("/subjects")
 @login_required

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, g, redirect, url_for, flash
+from flask import Blueprint, render_template, request, g, redirect, url_for, flash, abort
 from app.models import Class, Student, Exam
 from app.utils import login_required
 from app.extensions import db
@@ -51,6 +51,8 @@ def home():
 @bp.route("/search")
 @login_required
 def search():
+    if g.user.role == 'student':
+        abort(403)
     q = request.args.get("q", "").strip()
     if not q:
         flash("Please enter name or roll number to search.", "danger")

@@ -4,34 +4,52 @@
 
 {% block content %}
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">My Academic Results</h1>
+    <h1 class="h3 mb-0 text-gray-800">Academic History</h1>
     <a href="{{ url_for('student_portal.dashboard') }}" class="btn btn-secondary shadow-sm">
         <i class="fas fa-arrow-left"></i> Dashboard
     </a>
 </div>
 
-<div class="row">
-    {% if exams %}
-        {% for e in exams %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">{{ e.name }}</h6>
-                    <small class="text-muted">{{ e.exam_type }}</small>
-                </div>
-                <div class="card-body text-center">
-                    <a href="{{ url_for('exams.student_result', student_id=stu.id, exam_id=e.id) }}" class="btn btn-info text-white w-100 mb-2">View Result Card</a>
-                </div>
-            </div>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Examination Results</h6>
+    </div>
+    <div class="card-body">
+        {% if exams %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Academic Session</th>
+                        <th>Exam Name</th>
+                        <th>Type</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in exams %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-secondary">{{ e.session.name if e.session else 'N/A' }}</span>
+                        </td>
+                        <td class="fw-bold">{{ e.name }}</td>
+                        <td>{{ e.exam_type }}</td>
+                        <td class="text-center">
+                            <a href="{{ url_for('exams.student_result', student_id=stu.id, exam_id=e.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> View Report Card
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% endfor %}
-    {% else %}
-        <div class="col-12">
-            <div class="card shadow p-5 text-center text-muted">
-                <i class="fas fa-file-alt fa-3x mb-3"></i>
-                <p>No results found for your enrollment.</p>
-            </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="fas fa-file-alt fa-3x mb-3"></i>
+            <p>No examination results found for your profile.</p>
         </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

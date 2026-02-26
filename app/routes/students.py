@@ -7,6 +7,7 @@ bp = Blueprint('students', __name__)
 
 @bp.route("/students")
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def directory():
     if g.user.role == 'teacher':
         from app.models import SubjectTeacherAssignment
@@ -25,12 +26,14 @@ def directory():
 
 @bp.route("/student/<int:student_id>")
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def profile(student_id):
     stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
     return render_template("students/profile.html", stu=stu)
 
 @bp.route("/add-student", methods=["GET", "POST"])
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def enroll_student():
     if request.method == "POST":
         new_student = Student(
@@ -55,6 +58,7 @@ def enroll_student():
 
 @bp.route("/add-to-class/<int:class_id>", methods=["GET", "POST"])
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def add_to_class(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
@@ -79,6 +83,7 @@ def add_to_class(class_id):
 
 @bp.route("/student/<int:student_id>/edit", methods=["GET", "POST"])
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def edit_student(student_id):
     stu = Student.query.filter_by(id=student_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":

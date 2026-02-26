@@ -7,6 +7,7 @@ bp = Blueprint('classes', __name__)
 
 @bp.route("/classes")
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def list_classes():
     if g.user.role == 'teacher':
         # For teachers, show classes where they are form teacher OR have a subject assignment in CURRENT session
@@ -18,12 +19,6 @@ def list_classes():
                  (SubjectTeacherAssignment.session_id == g.current_session.id)
              )))
         ).order_by(Class.class_name, Class.section).distinct().all()
-    elif g.user.role == 'student':
-        if g.user.student_id:
-            stu = Student.query.get(g.user.student_id)
-            classes = [stu.student_class] if stu.student_class else []
-        else:
-            classes = []
     else:
         classes = Class.query.filter_by(
             school_id=g.school.id
@@ -63,6 +58,7 @@ def add_class():
 
 @bp.route("/class/<int:class_id>")
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def class_detail(class_id):
     cls = Class.query.filter_by(id=class_id, school_id=g.school.id).first_or_404()
 
@@ -74,8 +70,7 @@ def class_detail(class_id):
     ).first() is not None
 
     if not can_manage_class(cls) and not is_subject_assigned:
-        if g.user.role != 'student' or (g.user.student_id and Student.query.get(g.user.student_id).class_id != class_id):
-            abort(403)
+        abort(403)
 
     return render_template("classes/detail.html", cls=cls)
 
@@ -222,6 +217,7 @@ def delete_subject(subject_id):
 
 @bp.route("/class/<int:class_id>/students-csv")
 @login_required
+@require_role("admin", "principal", "vice_principal", "teacher")
 def export_students_csv(class_id):
     import io
     import csv

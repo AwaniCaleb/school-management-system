@@ -18,7 +18,7 @@
                 <h4 class="fw-bold">{{ stu.name }}</h4>
                 <p class="text-muted mb-1">{{ stu.student_class.class_name }} - {{ stu.student_class.section }}</p>
                 <p class="text-muted small">Roll No: {{ stu.roll_no }}</p>
-                <a href="{{ url_for('students.profile', student_id=stu.id) }}" class="btn btn-sm btn-outline-primary px-4">View My Full Profile</a>
+                <a href="{{ url_for('student_portal.profile') }}" class="btn btn-sm btn-outline-primary px-4">View My Full Profile</a>
             </div>
         </div>
 
