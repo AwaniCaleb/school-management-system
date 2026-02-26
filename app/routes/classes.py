@@ -145,31 +145,42 @@ def list_subjects():
 
 @bp.route("/add-subject", methods=["GET", "POST"])
 @login_required
-@require_role("admin", "principal")
+@require_role("admin", "principal", "vp_academic", "hod")
 def add_subject():
+    from app.models import Department
     if request.method == "POST":
         sub_name = request.form["subject"].strip()
+        dept_id = request.form.get("department_id")
         if not sub_name:
             flash("Subject name is required.", "danger")
         else:
-            new_sub = Subject(subject_name=sub_name, school_id=g.school.id)
+            new_sub = Subject(
+                subject_name=sub_name,
+                school_id=g.school.id,
+                department_id=int(dept_id) if dept_id else None
+            )
             db.session.add(new_sub)
             db.session.commit()
             flash("Subject added to school directory!", "s")
             return redirect(url_for("classes.list_subjects"))
-    return render_template("subjects/add.html", cls=None)
+    depts = Department.query.filter_by(school_id=g.school.id).all()
+    return render_template("subjects/add.html", departments=depts)
 
 @bp.route("/subject/<int:subject_id>/edit", methods=["GET", "POST"])
 @login_required
-@require_role("admin", "principal")
+@require_role("admin", "principal", "vp_academic", "hod")
 def edit_subject(subject_id):
+    from app.models import Department
     sub = Subject.query.filter_by(id=subject_id, school_id=g.school.id).first_or_404()
     if request.method == "POST":
         sub.subject_name = request.form["subject"].strip()
+        dept_id = request.form.get("department_id")
+        sub.department_id = int(dept_id) if dept_id else None
         db.session.commit()
         flash("Subject updated!", "s")
         return redirect(url_for("classes.list_subjects"))
-    return render_template("subjects/edit.html", sub=sub)
+    depts = Department.query.filter_by(school_id=g.school.id).all()
+    return render_template("subjects/edit.html", sub=sub, departments=depts)
 
 @bp.route("/assign-teacher/<int:class_id>", methods=["GET", "POST"])
 @login_required
