@@ -150,9 +150,11 @@
                 </a>
                 {% endif %}
 
+                {% if g.user.role != 'student' %}
                 <a href="{{ url_for('main.howto') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'main.howto' %}active{% endif %}">
                     <i class="fas fa-question-circle"></i> Help
                 </a>
+                {% endif %}
 
                 {% if g.user.role in ['admin', 'principal', 'vice_principal'] %}
                 <a href="{{ url_for('settings.index') }}" class="list-group-item list-group-item-action {% if 'settings' in request.endpoint %}active{% endif %}">

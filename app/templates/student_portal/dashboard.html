@@ -62,6 +62,30 @@
 
     <!-- Academic Progress -->
     <div class="col-lg-8">
+        <!-- Visual Insights -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 bg-white">
+                        <h6 class="m-0 font-weight-bold text-primary">Academic Performance</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 bg-white">
+                        <h6 class="m-0 font-weight-bold text-primary">Financial Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="feeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card shadow mb-4">
             <div class="card-header py-3 bg-primary text-white d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold">Latest Exam Result: {{ exam.name if exam else 'N/A' }}</h6>
@@ -109,4 +133,59 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Academic Performance Chart (Radar/Bar)
+    const perfCtx = document.getElementById('performanceChart').getContext('2d');
+    const performanceChart = new Chart(perfCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for r in results %}"{{ r.subject_name }}"{% if not loop.last %}, {% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Score',
+                data: [{% for r in results %}{{ r.marks }}{% if not loop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: 'rgba(78, 115, 223, 0.5)',
+                borderColor: 'rgba(78, 115, 223, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Fee Status Chart (Doughnut)
+    const feeCtx = document.getElementById('feeChart').getContext('2d');
+    const feeChart = new Chart(feeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paid', 'Balance'],
+            datasets: [{
+                data: [{{ total_paid }}, {{ balance }}],
+                backgroundColor: ['#1cc88a', '#e74c3c'],
+                hoverBackgroundColor: ['#17a673', '#be2617'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            cutout: '70%',
+        }
+    });
+</script>
 {% endblock %}

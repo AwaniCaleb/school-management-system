@@ -64,6 +64,8 @@ def dashboard():
                            total=total,
                            max_total=max_total,
                            percentage=percentage,
+                           total_due=total_due,
+                           total_paid=total_paid,
                            balance=balance)
 
 @bp.route("/results")
