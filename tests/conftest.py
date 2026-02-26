@@ -15,7 +15,7 @@ def app():
         _db.create_all()
         # Setup basic SaaS context for tests
         from app.models import School, Session
-        s = School(name='Test School', subdomain='test')
+        s = School(name='Test School', subdomain='localhost')
         _db.session.add(s)
         _db.session.commit()
 

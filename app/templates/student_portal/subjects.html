@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}My Subjects - School ERP{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">My Subjects & Teachers</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-white">
+        <h6 class="m-0 font-weight-bold text-primary">Assigned Subjects for {{ g.current_session.name }}</h6>
+    </div>
+    <div class="card-body">
+        {% if assignments %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Subject Name</th>
+                        <th>Assigned Teacher</th>
+                        <th>Email</th>
+                        <th>Contact Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in assignments %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ a.subject.subject_name }}</td>
+                        <td>
+                            {% if a.teacher %}
+                                {{ a.teacher.display_name }}
+                            {% else %}
+                                <span class="text-muted">Not Assigned</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ a.teacher.email if a.teacher else 'N/A' }}</td>
+                        <td>{{ a.teacher.phone_number if a.teacher else 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-book-open fa-3x text-gray-300 mb-3"></i>
+            <p class="text-muted">No subjects have been assigned to your class for the current session.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="alert alert-info shadow-sm">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Note:</strong> You can contact your subject teachers directly via the email or phone number provided if you have academic inquiries.
+</div>
+{% endblock %}

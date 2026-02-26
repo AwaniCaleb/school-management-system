@@ -32,24 +32,24 @@ def seed_db():
         db.session.flush()
 
         # Administrative Roles for School 1
-        s1_admin = User(username='admin', role='admin', school_id=school1.id)
+        s1_admin = User(username='admin', role='admin', school_id=school1.id, full_name='System Admin')
         s1_admin.set_password('admin123')
-        s1_principal = User(username='principal', role='principal', school_id=school1.id)
+        s1_principal = User(username='principal', role='principal', school_id=school1.id, full_name='Dr. Olumide Johnson', email='principal@lagosheritage.edu.ng', phone_number='08012345678')
         s1_principal.set_password('principal123')
-        s1_vp = User(username='vp_academic', role='vice_principal', school_id=school1.id)
+        s1_vp = User(username='vp_academic', role='vice_principal', school_id=school1.id, full_name='Mrs. Adesua Eze', email='vp.academic@lagosheritage.edu.ng', phone_number='08023456789')
         s1_vp.set_password('vp123')
         db.session.add_all([s1_admin, s1_principal, s1_vp])
 
         # Teachers for School 1
         teacher_data = [
-            ('adeyemi_f', 'Mr. Femi Adeyemi'),
-            ('balogun_b', 'Mrs. Bisi Balogun'),
-            ('okonkwo_c', 'Mr. Chinedu Okonkwo'),
-            ('chioma_n', 'Ms. Ngozi Chioma')
+            ('adeyemi_f', 'Mr. Femi Adeyemi', 'femi.adeyemi@lagosheritage.edu.ng', '08034567890'),
+            ('balogun_b', 'Mrs. Bisi Balogun', 'bisi.balogun@lagosheritage.edu.ng', '08045678901'),
+            ('okonkwo_c', 'Mr. Chinedu Okonkwo', 'chinedu.okonkwo@lagosheritage.edu.ng', '08056789012'),
+            ('chioma_n', 'Ms. Ngozi Chioma', 'ngozi.chioma@lagosheritage.edu.ng', '08067890123')
         ]
         s1_teachers = []
-        for uname, name in teacher_data:
-            t = User(username=uname, role='teacher', school_id=school1.id)
+        for uname, name, email, phone in teacher_data:
+            t = User(username=uname, role='teacher', school_id=school1.id, full_name=name, email=email, phone_number=phone)
             t.set_password('teacher123')
             db.session.add(t)
             s1_teachers.append(t)
@@ -118,6 +118,7 @@ def seed_db():
                 stu_user = User(
                     school_id=school1.id,
                     username=stu.roll_no.lower(), # Username is the roll number
+                    full_name=stu.name,
                     role='student',
                     student_id=stu.id
                 )
@@ -146,6 +147,43 @@ def seed_db():
             Setting(school_id=school1.id, key='grade_d', value='40'),
         ]
         db.session.add_all(settings)
+
+        # Fee Structures
+        for c in db_classes:
+            f1 = FeeStructure(
+                school_id=school1.id,
+                session_id=s1_sess_cur.id,
+                class_id=c.id,
+                name='Tuition Fee',
+                amount=50000.0,
+                due_date='2024-09-30'
+            )
+            f2 = FeeStructure(
+                school_id=school1.id,
+                session_id=s1_sess_cur.id,
+                class_id=c.id,
+                name='Development Levy',
+                amount=15000.0,
+                due_date='2024-09-30'
+            )
+            db.session.add_all([f1, f2])
+        db.session.flush()
+
+        # Payments for JSS 1A students
+        for stu in jss1a.students:
+            fees = FeeStructure.query.filter_by(class_id=jss1a.id, session_id=s1_sess_cur.id).all()
+            for f in fees:
+                # Randomly pay some or all
+                paid = random.choice([0.0, f.amount, f.amount / 2])
+                if paid > 0:
+                    payment = FeePayment(
+                        student_id=stu.id,
+                        fee_id=f.id,
+                        paid_amount=paid,
+                        paid_on='2024-10-05',
+                        mode='Bank Transfer'
+                    )
+                    db.session.add(payment)
 
         # Marks
         for stu in jss1a.students:

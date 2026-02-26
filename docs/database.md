@@ -55,6 +55,9 @@ erDiagram
         string username
         string password_hash
         string role
+        string full_name
+        string email
+        string phone_number
         int student_id
     }
 

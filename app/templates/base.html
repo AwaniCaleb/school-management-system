@@ -117,8 +117,17 @@
             </div>
             <div class="list-group list-group-flush mt-2">
                 {% if g.user.role == 'student' %}
-                <a href="{{ url_for('student_portal.dashboard') }}" class="list-group-item list-group-item-action {% if 'student_portal' in request.endpoint %}active{% endif %}">
+                <a href="{{ url_for('student_portal.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'student_portal.dashboard' %}active{% endif %}">
                     <i class="fas fa-tachometer-alt"></i> My Dashboard
+                </a>
+                <a href="{{ url_for('student_portal.subjects') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'student_portal.subjects' %}active{% endif %}">
+                    <i class="fas fa-book"></i> My Subjects
+                </a>
+                <a href="{{ url_for('student_portal.view_results') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'student_portal.view_results' %}active{% endif %}">
+                    <i class="fas fa-poll"></i> My Results
+                </a>
+                <a href="{{ url_for('student_portal.payments') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'student_portal.payments' %}active{% endif %}">
+                    <i class="fas fa-file-invoice-dollar"></i> My Payments
                 </a>
                 {% else %}
                 <a href="{{ url_for('main.home') }}" class="list-group-item list-group-item-action {% if request.endpoint == 'main.home' %}active{% endif %}">

@@ -25,8 +25,10 @@ Classes are displayed in a consolidated list for easier navigation in large scho
 
 ## 4. Student Portals
 Students can log in using their **Roll Number** (case-insensitive) and the default password `student123`.
-- They can view their **Academic Progress** for the current and past sessions.
-- They can monitor their **Outstanding Balance** for school fees.
+- **Dashboard**: View summary of academic progress and contact details for their Form Teacher.
+- **My Subjects**: Access the list of all subjects they are taking this session, along with the names and contact information (phone/email) of their teachers.
+- **My Payments**: Monitor all fees, see what has been paid, and track any **Outstanding Balance**. Includes a detailed payment history.
+- **My Results**: View marks and performance across different examination types.
 
 ## 5. Teacher Roles
 - **Form Teachers**: Have full visibility into their assigned class, including attendance and all subject results.

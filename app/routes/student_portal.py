@@ -73,9 +73,73 @@ def view_results():
         return redirect(url_for('main.home'))
 
     stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first()
-    # Can see all results across all sessions? Usually yes.
-    exams = Exam.query.filter(Exam.class_id == Student.class_id, Student.id == stu.id).all() # This is simplified
-    # Better: get all exams the student has marks in
+    # Get all exams the student has marks in
     exams = db.session.query(Exam).join(Mark).filter(Mark.student_id == stu.id).distinct().all()
 
     return render_template("student_portal/results.html", stu=stu, exams=exams)
+
+@bp.route("/subjects")
+@login_required
+def subjects():
+    if g.user.role != 'student' or not g.user.student_id:
+        return redirect(url_for('main.home'))
+
+    stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first()
+    if not stu.class_id:
+        flash("You are not currently assigned to a class.", "info")
+        return redirect(url_for('.dashboard'))
+
+    from app.models import SubjectTeacherAssignment
+    # Get subjects assigned to this class for the current session
+    assignments = SubjectTeacherAssignment.query.filter_by(
+        class_id=stu.class_id,
+        session_id=g.current_session.id
+    ).all()
+
+    return render_template("student_portal/subjects.html", stu=stu, assignments=assignments)
+
+@bp.route("/payments")
+@login_required
+def payments():
+    if g.user.role != 'student' or not g.user.student_id:
+        return redirect(url_for('main.home'))
+
+    stu = Student.query.filter_by(id=g.user.student_id, school_id=g.school.id).first()
+
+    # Fees for current session
+    fee_structures = FeeStructure.query.filter_by(
+        class_id=stu.class_id,
+        session_id=g.current_session.id
+    ).all()
+
+    # Detailed payment history
+    history = FeePayment.query.filter_by(student_id=stu.id).order_by(FeePayment.paid_on.desc()).all()
+
+    # Calculate summary per fee structure
+    summary = []
+    total_due = 0
+    total_paid = 0
+
+    for fs in fee_structures:
+        paid_for_this = db.session.query(db.func.sum(FeePayment.paid_amount)).filter_by(
+            student_id=stu.id,
+            fee_id=fs.id
+        ).scalar() or 0
+
+        summary.append({
+            'name': fs.name,
+            'amount': fs.amount,
+            'paid': paid_for_this,
+            'balance': fs.amount - paid_for_this,
+            'due_date': fs.due_date
+        })
+        total_due += fs.amount
+        total_paid += paid_for_this
+
+    return render_template("student_portal/payments.html",
+                           stu=stu,
+                           summary=summary,
+                           history=history,
+                           total_due=total_due,
+                           total_paid=total_paid,
+                           total_balance=total_due - total_paid)

@@ -42,11 +42,18 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     school_id = db.Column(db.Integer, db.ForeignKey('schools.id', ondelete='CASCADE'), nullable=False)
     username = db.Column(db.String(80), nullable=False)
+    full_name = db.Column(db.String(100))
+    email = db.Column(db.String(100))
+    phone_number = db.Column(db.String(20))
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False) # 'admin', 'principal', 'vice_principal', 'teacher', 'student'
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', ondelete='SET NULL'))
 
     __table_args__ = (db.UniqueConstraint('school_id', 'username', name='_school_username_uc'),)
+
+    @property
+    def display_name(self):
+        return self.full_name if self.full_name else self.username
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
