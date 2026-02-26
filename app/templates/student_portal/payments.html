@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Fees & Payments - School ERP{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Financial Overview</h1>
+    <div class="text-end">
+        <span class="badge bg-{{ 'success' if total_balance <= 0 else 'danger' }} p-2">
+            Status: {{ 'Paid' if total_balance <= 0 else 'Outstanding Balance' }}
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-start border-primary border-4 shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Fee Payable</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦ {{ "%.2f"|format(total_due) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-start border-success border-4 shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Amount Paid</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦ {{ "%.2f"|format(total_paid) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-start border-danger border-4 shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Outstanding Balance</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">₦ {{ "%.2f"|format(total_balance) }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Fee Breakdown -->
+    <div class="col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Fee Breakdown ({{ g.current_session.name }})</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fee Name</th>
+                                <th>Amount</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in summary %}
+                            <tr>
+                                <td>{{ s.name }}</td>
+                                <td>₦ {{ "%.2f"|format(s.amount) }}</td>
+                                <td class="text-success">₦ {{ "%.2f"|format(s.paid) }}</td>
+                                <td class="{{ 'text-danger fw-bold' if s.balance > 0 else 'text-muted' }}">
+                                    ₦ {{ "%.2f"|format(s.balance) }}
+                                </td>
+                                <td class="small">{{ s.due_date }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-secondary">Payment History</h6>
+            </div>
+            <div class="card-body">
+                {% if history %}
+                <ul class="list-group list-group-flush">
+                    {% for p in history %}
+                    <li class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">{{ p.fee_structure.name }}</div>
+                                <div class="text-muted small">Via {{ p.mode }} on {{ p.paid_on }}</div>
+                            </div>
+                            <div class="text-success fw-bold">+ ₦ {{ "%.2f"|format(p.paid_amount) }}</div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-center py-4 text-muted">No payment records found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

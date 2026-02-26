@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Promote Students - School ERP{% endblock %}
+{% block content %}
+<div class="card shadow max-width-600 mx-auto">
+    <div class="card-header py-3 bg-success text-white">
+        <h6 class="m-0 font-weight-bold">Promote Students</h6>
+    </div>
+    <div class="card-body">
+        <p class="mb-4 text-muted">
+            You are promoting students from <strong>{{ source.class_name }} - {{ source.section }}</strong>.
+            This will copy students to the target class.
+        </p>
+
+        <div class="alert alert-info py-2 small">
+            <i class="fas fa-info-circle me-1"></i> Students with existing roll numbers in the target class will be skipped.
+        </div>
+
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label fw-bold">Target Class</label>
+                <select name="target_class" class="form-select" required>
+                    <option value="">-- Select Class --</option>
+                    {% for c in target_classes %}
+                    <option value="{{ c.id }}">{{ c.class_name }} - {{ c.section }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" name="move" id="moveCheck">
+                    <label class="form-check-label" for="moveCheck">
+                        <strong>Remove from current class?</strong> (If checked, students will be moved instead of copied)
+                    </label>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg px-4" onclick="return confirm('Start promotion process?')">
+                    <i class="fas fa-level-up-alt me-1"></i> Start Promotion
+                </button>
+                <a href="{{ url_for('classes.class_detail', class_id=source.id) }}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

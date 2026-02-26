@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Student Profile - {{ stu.name }}{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Student Profile</h1>
+    <div>
+        <a href="{{ url_for('students.edit_student', student_id=stu.id) }}" class="btn btn-warning shadow-sm me-2">
+            <i class="fas fa-edit"></i> Edit Profile
+        </a>
+        <a href="{{ url_for('students.directory') }}" class="btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left"></i> Directory
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-7x text-gray-300"></i>
+                </div>
+                <h4 class="fw-bold">{{ stu.name }}</h4>
+                <p class="text-muted mb-1">{{ stu.student_class.class_name if stu.student_class else 'Not Assigned' }}</p>
+                <p class="text-muted small">Roll No: {{ stu.roll_no or 'N/A' }}</p>
+                <span class="badge bg-success mb-3">{{ stu.status }}</span>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">Guardian Information</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-1 small text-muted">Guardian Name</p>
+                <p class="fw-bold">{{ stu.guardian_name or 'N/A' }}</p>
+                <p class="mb-1 small text-muted">Phone Number</p>
+                <p class="fw-bold">{{ stu.guardian_phone or 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">Personal Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Gender</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.gender or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Date of Birth</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.dob or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">State of Origin</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.state_of_origin or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Religion</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.religion or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Blood Group</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.blood_group or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Personal Contact</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.contact_no or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Address</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.address or 'N/A' }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Enrollment Date</div>
+                    <div class="col-sm-8 fw-bold">{{ stu.enrollment_date }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-light">
+                <h6 class="m-0 font-weight-bold text-primary">Medical Notes</h6>
+            </div>
+            <div class="card-body">
+                <p>{{ stu.medical_notes or 'No medical notes recorded.' }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

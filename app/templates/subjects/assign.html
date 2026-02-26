@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Assign Teacher - {{ cls.class_name }}{% endblock %}
+{% block content %}
+<div class="card shadow max-width-600 mx-auto">
+    <div class="card-header py-3 bg-primary text-white">
+        <h6 class="m-0 font-weight-bold">Subject-Teacher Assignment</h6>
+    </div>
+    <div class="card-body">
+        <p class="text-muted small">
+            Assigning teachers for <strong>{{ cls.class_name }} {{ cls.section }}</strong> in the <strong>{{ g.current_session.name }}</strong> session.
+        </p>
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Select Subject</label>
+                <select name="subject_id" class="form-select" required>
+                    <option value="">-- Choose Subject --</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.subject_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Assign Teacher</label>
+                <select name="teacher_id" class="form-select">
+                    <option value="">-- None (Unassigned) --</option>
+                    {% for t in teachers %}
+                    <option value="{{ t.id }}">{{ t.username }} ({{ t.role }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Assignment
+                </button>
+                <a href="{{ url_for('classes.class_detail', class_id=cls.id) }}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

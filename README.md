@@ -1,129 +1,91 @@
-# 🎓 School ERP System
+# 🎓 Professional School ERP System (FYP)
 
-## 🚀 Pro Version Available
-
-A small Flask-based School ERP app with core features for class management, students, exams, attendance, fees, and result exports.
+A comprehensive, modular School Enterprise Resource Planning (ERP) application built with **Flask** and **SQLAlchemy**. This project was designed and developed as a **Computer Science Final Year Project** to meet professional standards of software engineering, security, and documentation.
 
 ---
 
-## ✨ Highlights
-
-- Login with roles (admin / teacher)
-- Classes, students, and subjects
-- Multi-exam support and weighted marks
-- Attendance per class and per date
-- Fee structures, payments, and student summaries
-- Export: result PDF (ReportLab), class CSV exports
-- Clean UI powered by Bootstrap and custom CSS in `static/css/styles.css`
-- Uses SQLite (`school.db`) as the database (auto-initialized)
+## 👥 Authors
+- **Afedia Glory**
+- **Awani Caleb**
 
 ---
 
-## 🧭 Quick Start (Windows PowerShell)
+## ✨ Features
 
-1) Create an isolated virtual environment (optional, but recommended):
+- **Modular Architecture**: Built using Flask Blueprints and the Application Factory pattern for scalability and maintainability.
+- **ORM Integration**: Powered by SQLAlchemy for secure and efficient database management.
+- **Dynamic Dashboard**: Interactive system analytics with real-time charts (Chart.js) and RESTful API endpoints.
+- **Nigerian Academic Context**: Pre-configured for Nigerian secondary school structures (JSS/SS).
+- **Role-Based Portals**: Dedicated interfaces for Admin, Principal, Teachers, and Students.
+- **Core Modules**:
+  - **Class & Student Management**: Centralized student directory with detailed profiles.
+  - **Academic Records**: Specialized marks entry (Subject-specific for teachers), weighted scoring, and automated result card generation.
+  - **Attendance Tracking**: Daily attendance recording with an intuitive interface.
+  - **Financial Management**: Fee structure definition and student payment history tracking.
+  - **Security & Accountability**: Role-based access control (Admin/Teacher) and comprehensive System Audit Logs.
+- **Professional UI**: Responsive, sidebar-based layout built on Bootstrap 5.
+- **Exporting**: Download student lists and results in CSV format; printable result cards.
 
-```powershell
-python -m venv venv
-.\\venv\\Scripts\\Activate.ps1
+---
+
+## 🧭 Quick Start
+
+### 1. Prerequisites
+- Python 3.10+
+- Pip
+
+### 2. Installation
+```bash
+pip install -r requirements.txt
 ```
 
-2) Install dependencies:
-
-```powershell
-python -m pip install -r requirements.txt
+### 3. Database Setup (MANDATORY)
+Initialize and seed the database with professional Nigerian sample data:
+```bash
+python seed.py
 ```
 
-3) Run the app:
-
-```powershell
-python app.py
+### 4. Run the Application
+```bash
+python run.py
 ```
-
-Open http://127.0.0.1:5000 in your browser.
-
----
-
-## 🔑 Default Admin
-
-- Username: `admin`
-- Password: `admin123`
-
-> Note: The database will auto-create a default admin user if none exists on first run. Change the password for production.
+Access the system at: http://127.0.0.1:5000
 
 ---
 
-## 🗂 File Structure
+## 🔑 Default Credentials
 
-- `app.py` — Main Flask application and routes.
-- `templates/base.html` — Common layout (header, navbar, flash messages and content area).
-- `static/css/styles.css` — Styles extracted from inline HTML for easier customization.
-- `school.db` — SQLite database (created on first run).
-- `requirements.txt` — Project dependencies (Flask, Werkzeug, ReportLab).
-
----
-
-## 🛠 Usage / Common Endpoints
-
-- `/login` — Sign in (run as admin/teacher).
-- `/logout` — Logout.
-- `/` — Dashboard (requires login).
-- `/classes` — View all classes.
-- `/add_class` — (Admin) Add a class.
-- `/class/<class_id>` — View class details (students, subjects, exams).
-- `/add_student/<class_id>` — Add student to class.
-- `/add_subject/<class_id>` — Add subject to class.
-- `/exams/<class_id>` — Manage exams and weights for a class.
-- `/enter_marks/<class_id>?exam_id=<exam_id>` — Enter marks for a selected exam.
-- `/result/<student_id>` — View individual student's result (choose `exam_id` optionally).
-- `/class/<class_id>/results` — View class results and export CSV via `/class/<class_id>/results/csv?exam_id=<exam_id>`.
-- `/attendance/<class_id>` — Take attendance for a class for a specific date.
-- `/fees` — Fees dashboard and management.
-
-- `/howto` — In-app help page describing common workflows and usage (also see `HOWTO.md`).
+| Role    | Username  | Password   |
+|---------|-----------|------------|
+| Admin   | `admin`   | `admin123` |
+| Teacher | `teacher` | `teacher123`|
 
 ---
 
-## 🧩 Optional Features & Notes
-
-- PDF generation for individual result card requires `reportlab` (already present in `requirements.txt`) — if missing, the app will show a flash message and suggest installation.
-- By default, a dev `SECRET_KEY` is set in `app.py` (for sessions). Replace it with a secure value for production.
-- SQLite DB path is `school.db` by default; change `DB_NAME` in `app.py` if you want a different file.
-
----
-
-## ✅ What I changed (Templates & Static Files)
-
-- Moved the shared base HTML into `templates/base.html` and made the routes render content via `render_template("base.html", content=content)`.
-- Moved inline CSS into `static/css/styles.css` and included it from `base.html` via `url_for('static', filename='css/styles.css')`.
+## 📂 Project Structure
+- `app/`: Core application package (models, routes, templates, static files).
+- `docs/`: Technical and architectural documentation.
+- `tests/`: Automated test suite for quality assurance.
+- `run.py`: Entry point for starting the development server.
+- `seed.py`: Professional data seeder script.
 
 ---
 
-## 👩‍💻 Developer Tips
-
-- To add a dedicated view template for a page, create a new template file (e.g., `templates/classes.html`) and replace `content` string with Jinja blocks in that file.
-- To modularize DB helpers, you can move the `get_db()` and `init_db()` functions from `app.py` to a new `db_helpers.py` and import them back into `app.py` if you prefer a cleaner module separation.
-
----
-
-## 🧪 Quick Troubleshooting
-
-- If you run into DB issues, delete (or move) `school.db` to let the app reinitialize db tables and default admin.
-- If PDF downloads produce errors, ensure `reportlab` installed. Install with:
-
-```powershell
-python -m pip install reportlab
+## 🧪 Testing & Quality
+Run the automated test suite to verify system integrity:
+```bash
+export PYTHONPATH=$PYTHONPATH:.
+python -m pytest
 ```
 
 ---
 
-## 📬 Contributions & Feedback
-
-If you'd like the app further refactored (split each route into dedicated Jinja templates, move DB helpers to `db_helpers.py`, or convert to a package) — tell me what you'd like and I'll implement it.
+## 👩‍💻 Documentation
+For in-depth details, refer to the `docs/` directory:
+- [Architectural Overview](docs/architecture.md)
+- [Database Schema (ER Diagram)](docs/database.md)
+- [User Manual](docs/user_manual.md)
 
 ---
 
-Made with 💜 — enjoy managing your school! 🎒
-
-See the full `LICENSE` file for details.
-
+Copyright © 2025 Afedia Glory & Awani Caleb. All Rights Reserved.

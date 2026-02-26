@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Edit Class - School ERP{% endblock %}
+{% block content %}
+<div class="card shadow max-width-600 mx-auto">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Edit Class: {{ cls.class_name }}-{{ cls.section }}</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">Class Name</label>
+                <input type="text" name="class_name" class="form-control" value="{{ cls.class_name }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Section</label>
+                <input type="text" name="section" class="form-control" value="{{ cls.section }}" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Form Teacher</label>
+                <select name="form_teacher_id" class="form-select">
+                    <option value="">-- None --</option>
+                    {% for t in teachers %}
+                    <option value="{{ t.id }}" {{ 'selected' if cls.form_teacher_id == t.id }}>{{ t.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ url_for('classes.class_detail', class_id=cls.id) }}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

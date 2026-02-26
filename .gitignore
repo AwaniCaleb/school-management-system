@@ -1,0 +1,10 @@
+venv/
+*.pyc
+__pycache__/
+instance/
+.pytest_cache/
+*.db
+school.db
+school_new.db
+.env
+app_output.log

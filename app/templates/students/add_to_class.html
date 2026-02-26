@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Add Student to {{ cls.class_name }}{% endblock %}
+{% block content %}
+<div class="card shadow max-width-600 mx-auto">
+    <div class="card-header py-3 bg-primary text-white">
+        <h6 class="m-0 font-weight-bold">Add Existing Student to {{ cls.class_name }}-{{ cls.section }}</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="mb-4">
+                <label class="form-label fw-bold">Select Student</label>
+                <select name="student_id" class="form-select" required>
+                    <option value="">-- Choose from Directory --</option>
+                    {% for s in available_students %}
+                    <option value="{{ s.id }}">{{ s.name }} (Current Class: {{ s.student_class.class_name if s.student_class else 'None' }})</option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">If the student isn't here, <a href="{{ url_for('students.enroll_student') }}">enroll them first</a>.</div>
+            </div>
+
+            <div class="mb-4 text-muted small">
+                <i class="fas fa-info-circle me-1"></i> Roll number will be automatically generated based on class and student ID.
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-1"></i> Add to Class
+                </button>
+                <a href="{{ url_for('classes.class_detail', class_id=cls.id) }}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

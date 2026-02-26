@@ -1,58 +1,30 @@
-# How to Use - School ERP System
+# School ERP System - How-To Guide
 
-This document covers the main workflows for using the app.
+Welcome to your professional School ERP system. This guide explains common workflows and how to get the most out of the application.
 
-## 1. Login
-- Open `http://127.0.0.1:5000/login` and login as the default admin (admin/admin123).
-- For production, create a user or change admin password in the `users` table.
+## 1. Initial Setup
+1.  **Install Dependencies**: Run `pip install -r requirements.txt`.
+2.  **Initialize Database**: Run `python seed.py`. This is essential to create the default admin account and set up the academic structure.
 
-## 2. Dashboard
-- The dashboard shows quick counts of Classes, Students, and Exams.
-- Use the header navigation to go to Classes, Fees, or the Help page.
+## 2. Managing the Academic Year
+- **Creating Classes**: Go to **Classes** -> **Add New Class**. Use standard names like "JSS 1" or "SS 3".
+- **Adding Subjects**: Within a class view, use **Add Subject** to define the curriculum for that class.
+- **Enrolling Students**: Use **Add Student** in the class view. Provide full details including guardian contact information.
 
-## 3. Manage Classes
-- Go to `/classes` for a list of existing classes.
-- Admins can add classes at `/add_class`.
-- Click a class to view details and manage students and subjects.
+## 3. Recording Academic Performance
+- **Creating Exams**: Go to **Manage Exams** in the class detail page. Define the weightage (e.g., 0.3 for Mid-Term, 0.7 for Finals).
+- **Entering Marks**: Use the **Enter Marks** button next to an exam. This opens a bulk-entry sheet for the entire class.
+- **Generating Results**: Click **Result** next to any student's name to view and print their progress report.
 
-## 4. Students & Subjects
-- Add students to a class using the `+ Add Student` button. Fill name and roll number.
-- Add class-specific subjects using `+ Add Subject`.
+## 4. Administrative Tasks
+- **Attendance**: Open the **Attendance** sheet from the class view daily to track student presence.
+- **Fees**: Use the **Fees** dashboard to define costs for each class. Record payments under the student's fee details.
+- **Promotion**: At the end of the year, use the **Promotion** tool in the class view to move eligible students to the next class grade.
+- **Audit Logs**: Administrators can monitor system activity via **Settings** -> **View Audit Logs**.
 
-## 5. Exams and Entering Marks
-- Create an exam from `/exams/{class_id}` for the selected class.
-- Enter marks using `/enter_marks/{class_id}?exam_id={exam_id}` for each student.
-- Marks are stored per student-per-subject-per-exam to support multiple exams.
-
-## 6. Results and Exports (CSV & PDF)
-- View individual results: `/result/{student_id}` (select `exam_id`)
-- Class results: `/class/{class_id}/results?exam_id={exam_id}`.
-- Download result PDF from `/result/{student_id}/pdf` (requires `reportlab` package).
-- Export class results to CSV using the `Export CSV` button.
-
-## 7. Attendance
-- Take attendance per class and date at `/attendance/{class_id}`. Save the session.
-
-## 8. Fees
-- Use `/fees` for the fee dashboard.
-- Manage class fee structure at `/fees/class/{class_id}`.
-- Record student payments via the fees page.
-
-## 9. Search
-- Use the header search box or visit `/search?q=NAME_OR_ROLL`.
-
-## 10. Permissions & Roles
-- Admin users can manage classes, subjects, exams, and fees. Teachers are primarily limited to viewing and entering marks.
-
-## Troubleshooting
-- Delete `school.db` if you want to reset the data and reinitialize with the default admin.
-- Ensure the `reportlab` package is installed for PDF generation:
-
-```powershell
-python -m pip install reportlab
-```
-
-## Author / Support
-- Contact: amitkadam96k@gmail.com
+## 5. Security Tips
+- **Password Management**: Change the default admin password immediately in a production environment.
+- **Roles**: Use the 'Admin' role for full system access and 'Teacher' for academic-focused tasks.
 
 ---
+Developed by **Afedia Glory** & **Awani Caleb**.

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cls.class_name }} {{ cls.section }} - School ERP{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        Class Details: {{ cls.class_name }} - {{ cls.section }}
+    </h1>
+    {% if cls.form_teacher %}
+    <span class="badge bg-secondary">Form Teacher: {{ cls.form_teacher.username }}</span>
+    {% endif %}
+    <div>
+        {% if g.user.role in ['admin', 'principal', 'vice_principal'] or cls.form_teacher_id == g.user.id %}
+        <a href="{{ url_for('attendance.take_attendance', class_id=cls.id) }}" class="btn btn-warning shadow-sm me-2">
+            <i class="fas fa-calendar-check me-1"></i> Attendance
+        </a>
+        {% endif %}
+        <a href="{{ url_for('exams.class_results', class_id=cls.id) }}" class="btn btn-info text-white shadow-sm me-2">
+            <i class="fas fa-chart-line me-1"></i> Class Results
+        </a>
+        <a href="{{ url_for('classes.list_classes') }}" class="btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Action Buttons -->
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                {% if g.user.role in ['admin', 'principal', 'vice_principal'] or cls.form_teacher_id == g.user.id %}
+                <a href="{{ url_for('students.add_to_class', class_id=cls.id) }}" class="btn btn-success me-2">
+                    <i class="fas fa-user-plus"></i> Add Student
+                </a>
+                <a href="{{ url_for('classes.add_subject') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-book"></i> Add Subject
+                </a>
+                {% endif %}
+                <a href="{{ url_for('exams.list_exams', class_id=cls.id) }}" class="btn btn-info text-white me-2">
+                    <i class="fas fa-file-invoice"></i> Manage Exams
+                </a>
+                {% if g.user.role in ['admin', 'principal'] %}
+                <a href="{{ url_for('classes.edit_class', class_id=cls.id) }}" class="btn btn-outline-warning me-2">
+                    <i class="fas fa-edit"></i> Edit Class
+                </a>
+                <a href="{{ url_for('classes.promote_class', class_id=cls.id) }}" class="btn btn-outline-success me-2">
+                    <i class="fas fa-level-up-alt"></i> Promotion
+                </a>
+                <form action="{{ url_for('classes.delete_class', class_id=cls.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this class and all related data?')">
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Subjects Assignment (Current Session) -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3 bg-light d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Session Subjects</h6>
+                {% if g.user.role in ['admin', 'principal'] %}
+                <a href="{{ url_for('classes.assign_teacher', class_id=cls.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus"></i>
+                </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% set session_assignments = cls.subject_assignments|selectattr('session_id', 'equalto', g.current_session.id)|list %}
+                {% if session_assignments %}
+                <div class="list-group list-group-flush">
+                    {% for assign in session_assignments %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            {{ assign.subject.subject_name }}
+                            <br><small class="text-muted">
+                                <i class="fas fa-chalkboard-teacher me-1"></i>
+                                {{ assign.teacher.username if assign.teacher else 'Unassigned' }}
+                            </small>
+                        </div>
+                        {% if g.user.role in ['admin', 'principal'] %}
+                        <a href="{{ url_for('classes.assign_teacher', class_id=cls.id) }}" class="text-warning"><i class="fas fa-edit"></i></a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small">No subjects assigned for this session.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Students List -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-3 bg-light d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Students ({{ cls.students|length }})</h6>
+                <a href="{{ url_for('classes.export_students_csv', class_id=cls.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-file-csv me-1"></i> Download CSV
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Roll No</th>
+                                <th>Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in cls.students|sort(attribute='roll_no') %}
+                            <tr>
+                                <td>{{ s.roll_no }}</td>
+                                <td>{{ s.name }}</td>
+                                <td>
+                                    <a href="{{ url_for('exams.student_result', student_id=s.id) }}" class="btn btn-sm btn-outline-info">Result</a>
+                                    <a href="{{ url_for('fees.student_fees', student_id=s.id) }}" class="btn btn-sm btn-outline-primary">Fees</a>
+                                    {% if g.user.role in ['admin', 'principal', 'vice_principal'] %}
+                                    <a href="{{ url_for('students.edit_student', student_id=s.id) }}" class="btn btn-sm btn-link text-warning"><i class="fas fa-edit"></i></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not cls.students %}
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">No students in this class.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

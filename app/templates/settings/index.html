@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Settings - School ERP{% endblock %}
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">System Settings & Management</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">General Configuration</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">School Name</label>
+                        <input type="text" name="school_name" class="form-control" value="{{ settings.get('school_name', 'School ERP') }}">
+                    </div>
+                    <hr>
+                    <h6>Grading Thresholds (%)</h6>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="small">Grade A >=</label>
+                            <input type="number" name="grade_a" class="form-control" value="{{ settings.get('grade_a', '70') }}">
+                        </div>
+                        <div class="col">
+                            <label class="small">Grade B >=</label>
+                            <input type="number" name="grade_b" class="form-control" value="{{ settings.get('grade_b', '60') }}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label class="small">Grade C >=</label>
+                            <input type="number" name="grade_c" class="form-control" value="{{ settings.get('grade_c', '50') }}">
+                        </div>
+                        <div class="col">
+                            <label class="small">Grade D >=</label>
+                            <input type="number" name="grade_d" class="form-control" value="{{ settings.get('grade_d', '40') }}">
+                        </div>
+                    </div>
+                    <p class="text-muted small">Percentages below Grade D will be marked as F.</p>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+
+                <hr class="my-4">
+                <h6>System Utilities</h6>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('settings.view_logs') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list-alt me-1"></i> View Audit Logs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">Academic Sessions</h6>
+            </div>
+            <div class="card-body">
+                <h6>Add New Session</h6>
+                <form action="{{ url_for('settings.add_session') }}" method="POST" class="mb-4 d-flex">
+                    <input type="text" name="name" class="form-control me-2" placeholder="e.g. 2025/2026" required>
+                    <button type="submit" class="btn btn-info text-white">Create</button>
+                </form>
+
+                <h6>Existing Sessions</h6>
+                <div class="list-group list-group-flush">
+                    {% for s in sessions %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            {{ s.name }}
+                            {% if s.is_current %}
+                            <span class="badge bg-success ms-1">Current</span>
+                            {% endif %}
+                        </div>
+                        {% if not s.is_current %}
+                        <a href="{{ url_for('settings.set_current_session', session_id=s.id) }}" class="btn btn-sm btn-outline-primary">Set Current</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">Teacher Management</h6>
+            </div>
+            <div class="card-body">
+                <h6>Add New Teacher</h6>
+                <form action="{{ url_for('settings.add_teacher') }}" method="POST" class="mb-4">
+                    <div class="mb-2">
+                        <input type="text" name="username" class="form-control" placeholder="Username" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="password" name="password" class="form-control" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-sm w-100">Add Teacher</button>
+                </form>
+
+                <h6>Existing Teachers</h6>
+                <ul class="list-group list-group-flush">
+                    {% for t in teachers %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ t.username }}
+                        <span class="badge bg-info">Teacher</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
